@@ -167,7 +167,7 @@ fun SkillProficiencyRow(
     skill: Skill,
     onSkillChange: (Skill) -> Unit
 ) {
-    val proficiencyOptions = listOf("Beginner", "Intermediate", "Advanced", "Expert")
+    val proficiencyOptions = listOf("Beginner", "Intermediate", "Advanced", "Certified")
     var expanded by remember { mutableStateOf(false) }
 
     Row(
