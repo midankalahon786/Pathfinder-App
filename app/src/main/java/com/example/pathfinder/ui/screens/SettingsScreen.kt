@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +32,16 @@ import com.example.pathfinder.ui.theme.RedLogOut
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(navController: NavController) {
-    // The Scaffold has been removed. The Column is now the root element.
+    val onLogout: () -> Unit = {
+        // Here you would clear any saved user data (tokens, preferences, etc.)
+        // For example:
+        // viewModel.clearUserSession()
+
+        // Navigate to the login screen and clear the back stack
+        navController.navigate(Screen.Login.route) {
+            popUpTo(0) // This clears the entire back stack
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -87,6 +97,12 @@ fun SettingsScreen(navController: NavController) {
                 if (clickedItem == "Personal details") {
                     navController.navigate(Screen.BasicDetails.route)
                 }
+                if (clickedItem == "Skills Tab") {
+                    navController.navigate(Screen.SkillsTab.route)
+                }
+                if (clickedItem == "Roles/Titles") {
+                    navController.navigate(Screen.RolesTitles.route)
+                }
             }
         )
 
@@ -124,7 +140,7 @@ fun SettingsScreen(navController: NavController) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(
-                onClick = { /* Log out */ },
+                onClick = { onLogout() }, // Call the logout logic
                 modifier = Modifier
                     .weight(0.45f)
                     .height(48.dp),
@@ -133,9 +149,11 @@ fun SettingsScreen(navController: NavController) {
             ) {
                 Text("Log Out", color = Color.White, fontSize = 16.sp)
             }
+
             Spacer(modifier = Modifier.width(16.dp))
+
             Button(
-                onClick = { /* Switch user */ },
+                onClick = { onLogout() }, // "Switch User" also uses the logout logic
                 modifier = Modifier
                     .weight(0.45f)
                     .height(48.dp),
@@ -165,7 +183,7 @@ fun SectionCard(title: String, items: List<Pair<Painter, String>>, onItemClick: 
             items.forEachIndexed { index, (icon, text) ->
                 SettingsItem(icon, text, onClick = { onItemClick(text) })
                 if (index != items.lastIndex) {
-                    Divider(color = DividerColor, thickness = 1.dp)
+                    HorizontalDivider(thickness = 1.dp, color = DividerColor)
                 }
             }
         }

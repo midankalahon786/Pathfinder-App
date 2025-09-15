@@ -2,6 +2,7 @@ package com.example.pathfinder.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,10 +16,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,12 +54,21 @@ import com.example.pathfinder.ui.theme.DarkGrayText
 import com.example.pathfinder.ui.theme.DividerColor
 import com.example.pathfinder.ui.theme.LightPurpleBackground
 import com.example.pathfinder.ui.theme.MediumGrayText
+import com.example.pathfinder.ui.theme.White
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CareerGoalsScreen(navController: NavController) {
-    
+
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    val completedSteps = listOf(
+        "Basic Info" to Screen.BasicInfo.route,
+        "Skills & Expertise" to Screen.SkillsExpertise.route,
+        "Career Goals" to Screen.CareerGoals.route
+    )
+
     var searchText by remember { mutableStateOf("") }
     val selectedRoles = remember {
         mutableStateListOf(
@@ -73,8 +86,29 @@ fun CareerGoalsScreen(navController: NavController) {
             TopAppBar(
                 title = { Text("Career Goals & Ambitions", color = Color.White) },
                 navigationIcon = {
-                    IconButton(onClick = { /* Handle menu */ }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = White)
+                    }
+                },
+                actions = {
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Show Steps", tint = White)
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            completedSteps.forEach { (label, route) ->
+                                DropdownMenuItem(
+                                    text = { Text(label) },
+                                    onClick = {
+                                        navController.navigate(route)
+                                        menuExpanded = false
+                                    }
+                                )
+                            }
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

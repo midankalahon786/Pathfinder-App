@@ -11,8 +11,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,13 +65,13 @@ fun HelpSupportScreen(navController: NavController) {
                 text = "Contact Us",
                 onClick = { /* TODO: Navigate to Contact screen */ }
             )
-            Divider()
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
             HelpItem(
                 icon = painterResource(R.drawable.baseline_report_24),
                 text = "Report a Problem",
                 onClick = { /* TODO: Navigate to Report screen */ }
             )
-            Divider()
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
             HelpItem(
                 icon = painterResource(R.drawable.baseline_description_24),
                 text = "Terms of Service",

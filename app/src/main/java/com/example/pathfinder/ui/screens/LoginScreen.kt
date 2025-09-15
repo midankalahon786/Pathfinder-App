@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -24,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,11 +33,14 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
 import com.example.pathfinder.ui.theme.PathfinderAITheme
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit) {
+fun LoginScreen(
+    navController: NavController, onLoginSuccess: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -96,15 +101,19 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 Button(
                     onClick = { onLoginSuccess() }, // In a real app, you'd validate here
                     modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(16.dp)
+                    contentPadding = PaddingValues(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = TealHeader,
+                        contentColor = Color.White
+                    )
                 ) {
                     Text(text = "Login")
                 }
             }
 
             // This will now be pushed towards the bottom
-            TextButton(onClick = { /* Handle sign up navigation */ }) {
-                Text("Don't have an account? Sign Up")
+            TextButton(onClick = { navController.navigate(Screen.SignUp.route) }) {
+                Text("Don't have an account? Sign Up", color = TealHeader)
             }
         }
     }
@@ -113,7 +122,8 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
+    val fakeNavController: NavController = rememberNavController()
     PathfinderAITheme {
-        LoginScreen(onLoginSuccess = {})
+        LoginScreen(fakeNavController,onLoginSuccess = {})
     }
 }

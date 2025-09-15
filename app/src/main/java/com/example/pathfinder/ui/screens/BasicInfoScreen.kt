@@ -6,7 +6,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -37,13 +38,42 @@ val LightGrayField = Color(0xFFF0F0F0)
 fun BasicInfoScreen(
     navController: NavController
 ) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    val completedSteps = listOf(
+        "Basic Info" to Screen.BasicInfo.route,
+        "Skills & Expertise" to Screen.SkillsExpertise.route,
+        "Career Goals" to Screen.CareerGoals.route
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Basic Info", color = White) },
                 navigationIcon = {
-                    IconButton(onClick = { /* Handle menu click */ }) {
-                        Icon(Icons.Filled.Menu, contentDescription = "Menu", tint = White)
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = White)
+                    }
+                },
+                actions = {
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Show Steps", tint = White)
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            completedSteps.forEach { (label, route) ->
+                                DropdownMenuItem(
+                                    text = { Text(label) },
+                                    onClick = {
+                                        navController.navigate(route)
+                                        menuExpanded = false
+                                    }
+                                )
+                            }
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -91,7 +121,7 @@ fun BasicInfoScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     // Fields
-                    InfoTextField(label = "Name", initialValue = "James Harrid")
+                    InfoTextField(label = "Name", initialValue = "James Harried")
                     Spacer(modifier = Modifier.height(16.dp))
                     InfoTextField(label = "Email", initialValue = "example@email.com")
                     Spacer(modifier = Modifier.height(16.dp))

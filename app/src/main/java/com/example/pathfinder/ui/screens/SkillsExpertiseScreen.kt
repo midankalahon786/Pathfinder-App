@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,12 +28,22 @@ import com.example.pathfinder.model.Skill
 import com.example.pathfinder.ui.theme.DividerColor
 import com.example.pathfinder.ui.theme.LightGrayBackground
 import com.example.pathfinder.ui.theme.MediumGrayText
+import com.example.pathfinder.ui.theme.White
 
 val DarkBlueText = Color(0xFF004D40)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SkillsExpertiseScreen(navController: NavController) {
+
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    val completedSteps = listOf(
+        "Basic Info" to Screen.BasicInfo.route,
+        "Skills & Expertise" to Screen.SkillsExpertise.route,
+        "Career Goals" to Screen.CareerGoals.route
+    )
+
     val skillsList = remember {
         // Updated to include the isSelected state
         mutableStateListOf(
@@ -47,8 +58,29 @@ fun SkillsExpertiseScreen(navController: NavController) {
             TopAppBar(
                 title = { Text("Skills & Expertise", color = Color.White) },
                 navigationIcon = {
-                    IconButton(onClick = { /* Handle menu click */ }) {
-                        Icon(Icons.Filled.Menu, contentDescription = "Menu", tint = Color.White)
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = White)
+                    }
+                },
+                actions = {
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Show Steps", tint = White)
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            completedSteps.forEach { (label, route) ->
+                                DropdownMenuItem(
+                                    text = { Text(label) },
+                                    onClick = {
+                                        navController.navigate(route)
+                                        menuExpanded = false
+                                    }
+                                )
+                            }
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = TealHeader)

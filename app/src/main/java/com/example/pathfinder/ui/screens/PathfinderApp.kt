@@ -35,13 +35,26 @@ fun PathfinderApp() {
 
     NavHost(navController = navController, startDestination = Screen.Login.route) {
         composable(Screen.Login.route) {
-            LoginScreen(onLoginSuccess = {
+            LoginScreen(
+                navController = navController,onLoginSuccess = {
                 navController.navigate(Screen.Main.route) {
                     popUpTo(Screen.Login.route) { inclusive = true }
                 }
             })
         }
         composable(Screen.Main.route) { MainScreen(navController) }
+        composable(Screen.SignUp.route) {
+            SignUpScreen(
+                navController = navController,
+                onSignUpSuccess = {
+                    navController.navigate(Screen.Main.route) {
+                        popUpTo(Screen.Login.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
         composable(Screen.BasicInfo.route) { BasicInfoScreen(navController) }
         composable(Screen.BasicDetails.route){BasicDetailsScreen(navController)  }
         composable(Screen.SkillsExpertise.route) { SkillsExpertiseScreen(navController) }
@@ -54,6 +67,8 @@ fun PathfinderApp() {
                 SkillDetailScreen(navController = navController, skillName = skillName)
             }
         }
+        composable(Screen.SkillsTab.route) { SkillsTabScreen(navController = navController) }
+        composable(Screen.RolesTitles.route) { RolesTitlesScreen(navController = navController) }
         composable(Screen.CareerGoals.route) { CareerGoalsScreen(navController) }
         composable(Screen.FinalReview.route) { FinalReviewScreen(navController) }
         composable(Screen.Profile.route) { ProfileScreen() }

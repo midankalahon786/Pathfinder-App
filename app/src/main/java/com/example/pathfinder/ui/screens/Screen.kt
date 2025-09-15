@@ -5,6 +5,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -21,8 +22,8 @@ sealed class Screen(val route: String, val label: String, val icon: IconSource) 
     object Learn : Screen("learn", "Learn", IconSource.Resource(R.drawable.rounded_menu_book_24))
     object Settings : Screen("settings", "Settings", IconSource.Vector(Icons.Default.Settings))
 
-    // Other Screens in the Nav Graph (using ImageVector)
     object Login : Screen("login", "Login", IconSource.Vector(Icons.Default.Person))
+    object SignUp : Screen("signup", "Sign Up", IconSource.Vector(Icons.Default.Person))
     object Main : Screen("main", "Main", IconSource.Vector(Icons.Default.Person))
     object BasicInfo : Screen("basic_info", "Basic Info", IconSource.Vector(Icons.Default.Person))
     object BasicDetails: Screen("basic_details", "Basic Details", IconSource.Vector(Icons.Default.Person))
@@ -30,6 +31,8 @@ sealed class Screen(val route: String, val label: String, val icon: IconSource) 
     object SkillsDetails : Screen("skills_details/{skillName}", "Skills Details", IconSource.Vector(Icons.Default.Person)) {
         fun createRoute(skillName: String) = "skills_details/$skillName"
     }
+    object SkillsTab : Screen("skills_tab", "Skills Tab", IconSource.Vector(Icons.Filled.Star)) // Example icon
+    object RolesTitles : Screen("roles_titles", "Roles/Titles", IconSource.Resource(R.drawable.baseline_work_24)) // Example icon
     object CareerGoals : Screen("career_goals", "Career Goals", IconSource.Vector(Icons.Default.Person))
     object FinalReview : Screen("final_review", "Final Review", IconSource.Vector(Icons.Default.Person))
     object Profile : Screen("profile", "Profile", IconSource.Vector(Icons.Default.Person))

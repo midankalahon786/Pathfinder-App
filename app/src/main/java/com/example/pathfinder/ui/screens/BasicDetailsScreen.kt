@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -92,7 +92,7 @@ fun BasicDetailsScreen(
                 // ADDED: The back button is the navigationIcon
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -147,7 +147,7 @@ fun BasicDetailsScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             // Input Fields
-            DetailTextField(label = "Name", initialValue = "James Harrid")
+            DetailTextField(label = "Name", initialValue = "James Harried")
             Spacer(modifier = Modifier.height(24.dp))
             DetailTextField(label = "Phone", initialValue = "123-456-7890")
             Spacer(modifier = Modifier.height(24.dp))
@@ -193,7 +193,7 @@ fun BasicDetailsScreen(
     }
 }
 
-// DetailTextField and Preview composables remain the same...
+// DetailTextField and Preview composable remain the same...
 
 @Composable
 fun DetailTextField(
