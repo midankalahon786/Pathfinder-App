@@ -27,6 +27,9 @@ sealed class Screen(val route: String, val label: String, val icon: IconSource) 
     object BasicInfo : Screen("basic_info", "Basic Info", IconSource.Vector(Icons.Default.Person))
     object BasicDetails: Screen("basic_details", "Basic Details", IconSource.Vector(Icons.Default.Person))
     object SkillsExpertise : Screen("skills_expertise", "Skills", IconSource.Vector(Icons.Default.Person))
+    object SkillsDetails : Screen("skills_details/{skillName}", "Skills Details", IconSource.Vector(Icons.Default.Person)) {
+        fun createRoute(skillName: String) = "skills_details/$skillName"
+    }
     object CareerGoals : Screen("career_goals", "Career Goals", IconSource.Vector(Icons.Default.Person))
     object FinalReview : Screen("final_review", "Final Review", IconSource.Vector(Icons.Default.Person))
     object Profile : Screen("profile", "Profile", IconSource.Vector(Icons.Default.Person))

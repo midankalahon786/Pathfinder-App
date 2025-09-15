@@ -1,5 +1,6 @@
 package com.example.pathfinder.ui.screens
 
+import android.R.attr.type
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -18,10 +19,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.pathfinder.ui.theme.PathfinderAITheme
 
 
@@ -39,12 +42,19 @@ fun PathfinderApp() {
                 }
             })
         }
-        composable(Screen.Main.route) {
-            MainScreen(navController = navController)
-        }
+        composable(Screen.Main.route) { MainScreen(navController) }
         composable(Screen.BasicInfo.route) { BasicInfoScreen(navController) }
         composable(Screen.BasicDetails.route){BasicDetailsScreen(navController)  }
         composable(Screen.SkillsExpertise.route) { SkillsExpertiseScreen(navController) }
+        composable(
+            route = Screen.SkillsDetails.route, // Use the route from the Screen sealed class
+            arguments = listOf(navArgument("skillName") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val skillName = backStackEntry.arguments?.getString("skillName")
+            if (skillName != null) {
+                SkillDetailScreen(navController = navController, skillName = skillName)
+            }
+        }
         composable(Screen.CareerGoals.route) { CareerGoalsScreen(navController) }
         composable(Screen.FinalReview.route) { FinalReviewScreen(navController) }
         composable(Screen.Profile.route) { ProfileScreen() }

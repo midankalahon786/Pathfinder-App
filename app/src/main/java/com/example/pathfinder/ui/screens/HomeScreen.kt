@@ -107,7 +107,11 @@ fun HomeScreen(
                         skill = skill,
                         modifier = Modifier
                             .weight(1f)
-                            .height(120.dp)
+                            .height(120.dp),
+                        onClick = {
+                            // Navigate to the detail screen, passing the skill name as an argument
+                            navController.navigate(Screen.SkillsDetails.createRoute(skill.name))
+                        }
                     )
                 }
             }
@@ -179,16 +183,17 @@ fun HomeScreen(
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
         ) {
-            Icon(Icons.Filled.Star, "AI Career Advisor")
+            Icon(painter = painterResource(R.drawable.robot_24px), "AI Career Advisor")
         }
     }
 }
 
 @Composable
-fun SkillCard(skill: Skill, modifier: Modifier = Modifier) {
+fun SkillCard(skill: Skill, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     Box(
         modifier = modifier
-            .background(GrayPlaceholder, RoundedCornerShape(8.dp)),
+            .background(GrayPlaceholder, RoundedCornerShape(8.dp))
+            .clickable{onClick()},
         contentAlignment = Alignment.Center
     ) {
         Text(
