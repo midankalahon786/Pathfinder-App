@@ -7,8 +7,8 @@ import retrofit2.Retrofit
 
 object RetrofitClient {
     // IMPORTANT: Replace with your deployed server's URL or local IP for testing.
-    // For local testing on an emulator, use http://10.0.2.2:3000/
-    private const val BASE_URL = "http://10.0.2.2:3000/"
+    // For testing on an emulator, use https://revvote.site (as the chatbot backend is currently hosted on this domain)
+    private const val BASE_URL = "https://revvote.site/"
 
     private val json = Json { ignoreUnknownKeys = true }
 
