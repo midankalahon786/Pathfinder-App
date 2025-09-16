@@ -1,5 +1,6 @@
 package com.example.pathfinder.ui.screens
 
+import android.app.Application
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,56 +25,85 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pathfinder.model.ChatMessage
 import com.example.pathfinder.ui.theme.PathfinderAITheme
 import com.example.pathfinder.viewmodel.AdvisorViewModel
+import com.example.pathfinder.viewmodel.AdvisorViewModelFactory
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdvisorScreen(advisorViewModel: AdvisorViewModel = viewModel()) {
+fun AdvisorScreen() { // <-- The parameter has been removed
+    // Get the application context, which is needed by the factory
+    val context = LocalContext.current.applicationContext
+
+    // Create the ViewModel using the factory. This is the only declaration now.
+    val advisorViewModel: AdvisorViewModel = viewModel(
+        factory = AdvisorViewModelFactory(context as Application)
+    )
+
     val messages by advisorViewModel.messages.collectAsState()
     val isLoading by advisorViewModel.isLoading.collectAsState()
-    val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(messages.size) {
-        coroutineScope.launch {
-            if (messages.isNotEmpty()) {
-                listState.animateScrollToItem(messages.size - 1)
-            }
-        }
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Career Advisor") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        },
-        bottomBar = {
-            MessageInput(
-                onSendMessage = { advisorViewModel.sendMessage(it) },
-                isLoading = isLoading
-            )
-        }
-    ) { paddingValues ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(vertical = 16.dp)
-        ) {
-            items(messages) { message ->
-                MessageBubble(message = message)
-            }
-        }
-    }
+    // Call the stateless composable that displays the UI
+    AdvisorScreenContent(
+        messages = messages,
+        isLoading = isLoading,
+        onSendMessage = { advisorViewModel.sendMessage(it) }
+    )
 }
+
+    /**
+     * This is a stateless version of the screen that only displays the UI.
+     * It's easy to preview and test because it doesn't depend on a ViewModel.
+     */
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun AdvisorScreenContent(
+        messages: List<ChatMessage>,
+        isLoading: Boolean,
+        onSendMessage: (String) -> Unit
+    ) {
+        val listState = rememberLazyListState()
+        val coroutineScope = rememberCoroutineScope()
+
+        // Automatically scroll to the bottom when a new message arrives
+        LaunchedEffect(messages.size) {
+            coroutineScope.launch {
+                if (messages.isNotEmpty()) {
+                    listState.animateScrollToItem(messages.size - 1)
+                }
+            }
+        }
+
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Career Advisor") },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                )
+            },
+            bottomBar = {
+                MessageInput(
+                    onSendMessage = onSendMessage,
+                    isLoading = isLoading
+                )
+            }
+        ) { paddingValues ->
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 16.dp)
+            ) {
+                items(messages) { message ->
+                    MessageBubble(message = message)
+                }
+            }
+        }
+    }
 
 @Composable
 fun MessageBubble(message: ChatMessage) {
@@ -145,10 +176,23 @@ fun MessageInput(onSendMessage: (String) -> Unit, isLoading: Boolean) {
     }
 }
 
+/**
+ * The preview now calls the stateless AdvisorScreenContent with fake data.
+ * This will no longer crash and allows you to build your UI in isolation.
+ */
 @Preview(showBackground = true)
 @Composable
 fun AdvisorScreenPreview() {
     PathfinderAITheme {
-        AdvisorScreen()
+        val previewMessages = listOf(
+            ChatMessage("Hello! How can I help you today?", isFromUser = false),
+            ChatMessage("I want to know about a career in software engineering.", isFromUser = true),
+            ChatMessage("Of course! Software engineering is a vast field...", isFromUser = false)
+        )
+        AdvisorScreenContent(
+            messages = previewMessages,
+            isLoading = false,
+            onSendMessage = {}
+        )
     }
 }

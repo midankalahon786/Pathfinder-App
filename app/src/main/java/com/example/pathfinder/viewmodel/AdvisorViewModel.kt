@@ -1,87 +1,89 @@
+// In viewmodel/AdvisorViewModel.kt
 package com.example.pathfinder.viewmodel
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.pathfinder.model.ChatMessage
-import com.example.pathfinder.model.UserProfile
-import kotlinx.coroutines.delay
+import com.example.pathfinder.network.ChatHistoryRepository
+import com.example.pathfinder.network.RetrofitClient
+import com.example.pathfinder.network.data.ChatRequest
+import com.example.pathfinder.network.data.Content
+import com.example.pathfinder.network.data.Part
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class AdvisorViewModel : ViewModel() {
+class AdvisorViewModel(private val repository: ChatHistoryRepository) : ViewModel() {
 
-    // --- 1. HARDCODED PROFILE DATA ---
-    private val _userProfile = MutableStateFlow(
-        UserProfile(
-            name = "Alex",
-            currentRole = "Marketing Manager",
-            skills = listOf("SEO", "Content Writing", "Social Media")
-        )
-    )
-    val userProfile = _userProfile.asStateFlow()
-    // --- End of new code ---
-
-    private val _messages = MutableStateFlow<List<ChatMessage>>(listOf())
+    private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages = _messages.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
     init {
-        // Initial welcome message from the AI
+        // Load history when the ViewModel is created
+        loadChatHistory()
+    }
+
+    private fun loadChatHistory() {
         viewModelScope.launch {
-            _isLoading.value = true
-            delay(1000) // Simulate network call
-
-            // --- 2. PERSONALIZED WELCOME MESSAGE ---
-            val welcomeMessage = "Hello, ${_userProfile.value.name}! I'm your Pathfinder AI. " +
-                    "I see you're a ${_userProfile.value.currentRole}. How can I help with your career goals today?"
-
-            _messages.value = listOf(
-                ChatMessage(welcomeMessage, isFromUser = false)
-            )
-            _isLoading.value = false
+            _messages.value = repository.chatHistory.first()
         }
     }
+
+    // History for the Gemini API
+    private val conversationHistory = mutableListOf<Content>()
 
     fun sendMessage(text: String) {
-        if (text.isBlank()) return
+        if (text.isBlank() || _isLoading.value) return
 
-        // Add user message to the list
-        _messages.value = _messages.value + ChatMessage(text, isFromUser = true)
+        val userMessage = ChatMessage(message = text, isFromUser = true)
 
-        // Simulate a response from the AI
+        // Add user message and save the updated list
+        val updatedMessages = _messages.value + userMessage
+        _messages.value = updatedMessages
+        viewModelScope.launch { repository.saveChatHistory(updatedMessages) }
+
+        _isLoading.value = true
         viewModelScope.launch {
-            _isLoading.value = true
-            delay(2000) // Simulate network call and AI thinking time
+            try {
+                // Prepare history for the API from the current message list
+                val apiHistory = _messages.value.map {
+                    val role = if (it.isFromUser) "user" else "model"
+                    Content(role = role, parts = listOf(Part(it.message)))
+                }
 
-            // The AI response function now knows about the user's profile
-            val aiResponse = getDummyAiResponse(text, _userProfile.value)
-            _messages.value = _messages.value + ChatMessage(aiResponse, isFromUser = false)
-            _isLoading.value = false
+                val request = ChatRequest(prompt = text, history = apiHistory)
+                val response = RetrofitClient.instance.sendMessage(request)
+                val aiMessage = ChatMessage(message = response.response, isFromUser = false)
+
+                // Add AI response and save again
+                val finalMessages = _messages.value + aiMessage
+                _messages.value = finalMessages
+                repository.saveChatHistory(finalMessages)
+
+            } catch (e: Exception) {
+                val errorMessage = ChatMessage("Sorry, something went wrong: ${e.message}", false)
+                val errorMessages = _messages.value + errorMessage
+                _messages.value = errorMessages
+                repository.saveChatHistory(errorMessages)
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
+}
 
-    // --- 3. CONTEXT-AWARE AI RESPONSES ---
-    private fun getDummyAiResponse(userMessage: String, profile: UserProfile): String {
-        return when {
-            "product manager" in userMessage.lowercase() -> {
-                "Excellent choice! To become a Product Manager from a ${profile.currentRole}, you should focus on:\n" +
-                        "1. **UX/UI Fundamentals:** Understanding user-centric design.\n" +
-                        "2. **Agile Methodologies:** Learning Scrum and Kanban.\n" +
-                        "3. **Technical Literacy:** Basic knowledge of how software is built.\n\n" +
-                        "I can recommend some learning resources for these skills. Would you like that?"
-            }
-            "recommend" in userMessage.lowercase() -> {
-                "Of course! For UX/UI, I recommend the 'Google UX Design Professional Certificate' on Coursera. For Agile, the 'Scrum for Beginners' course on Udemy is a great start."
-            }
-            "my skills" in userMessage.lowercase() -> {
-                "Based on your profile, your current skills are: ${profile.skills.joinToString(", ")}. We can definitely build on these!"
-            }
-            else -> {
-                "That's an interesting goal. As a ${profile.currentRole}, what's the first step you'd like to explore?"
-            }
+class AdvisorViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(AdvisorViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return AdvisorViewModel(ChatHistoryRepository(application)) as T
         }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
