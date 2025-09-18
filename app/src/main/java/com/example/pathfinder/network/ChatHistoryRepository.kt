@@ -30,6 +30,12 @@ class ChatHistoryRepository(private val context: Context) {
             }
         }
 
+    suspend fun clearChatHistory() {
+        context.dataStore.edit { preferences ->
+            preferences.clear() // Removes all data
+        }
+    }
+
     // Function to save the chat history to DataStore
     suspend fun saveChatHistory(messages: List<ChatMessage>) {
         context.dataStore.edit { preferences ->

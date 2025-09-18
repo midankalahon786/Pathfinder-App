@@ -76,6 +76,13 @@ class AdvisorViewModel(private val repository: ChatHistoryRepository) : ViewMode
             }
         }
     }
+
+    fun clearChatHistory() {
+        viewModelScope.launch {
+            repository.clearChatHistory()
+            _messages.value = emptyList() // Clear the messages in the UI
+        }
+    }
 }
 
 class AdvisorViewModelFactory(private val application: Application) : ViewModelProvider.Factory {

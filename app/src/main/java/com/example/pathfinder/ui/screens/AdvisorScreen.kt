@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,7 +46,8 @@ fun AdvisorScreen(
         messages = messages,
         isLoading = isLoading,
         onSendMessage = { advisorViewModel.sendMessage(it) },
-        onNavigateUp = onNavigateUp
+        onNavigateUp = onNavigateUp,
+        onClearChat = {advisorViewModel.clearChatHistory()}
     )
 }
 
@@ -56,7 +58,8 @@ fun AdvisorScreenContent(
     messages: List<ChatMessage>,
     isLoading: Boolean,
     onSendMessage: (String) -> Unit,
-    onNavigateUp: () -> Unit 
+    onNavigateUp: () -> Unit,
+    onClearChat: () -> Unit
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -77,6 +80,16 @@ fun AdvisorScreenContent(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = onClearChat
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Clear Chat"
                         )
                     }
                 },
@@ -195,7 +208,8 @@ fun AdvisorScreenPreview() {
             messages = previewMessages,
             isLoading = false,
             onSendMessage = {},
-            onNavigateUp = {}
+            onNavigateUp = {},
+            onClearChat = {}
         )
     }
 }
