@@ -72,7 +72,9 @@ fun PathfinderApp() {
         composable(Screen.CareerGoals.route) { CareerGoalsScreen(navController) }
         composable(Screen.FinalReview.route) { FinalReviewScreen(navController) }
         composable(Screen.Profile.route) { ProfileScreen() }
-        composable(Screen.Advisor.route) { AdvisorScreen() }
+        composable(Screen.Advisor.route) {
+            AdvisorScreen(onNavigateUp = { navController.navigateUp() })
+        }
         composable(Screen.AccountPrivacy.route) { AccountPrivacyScreen(navController) }
         composable(Screen.Faq.route) { FaqScreen(navController) }
         composable(Screen.ContactUs.route) { HelpSupportScreen(navController) }
