@@ -5,6 +5,8 @@ query GetUserById($id: ID!) {
         id
         email
         name
+        phone
+        birthday
         currentRole
         yearsExperience
         skills {

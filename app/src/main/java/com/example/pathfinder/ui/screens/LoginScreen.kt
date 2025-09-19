@@ -165,12 +165,10 @@ fun LoginScreen(
 fun LoginScreenPreview() {
     PathfinderAITheme {
         val fakeNavController = rememberNavController()
-
-        // Use the safe, fake ViewModel for the preview
         LoginScreen(
             navController = fakeNavController,
             onLoginSuccess = {},
-            authViewModel = FakeAuthViewModel() // <-- Use the fake implementation
+            authViewModel = FakeAuthViewModel()
         )
     }
 }

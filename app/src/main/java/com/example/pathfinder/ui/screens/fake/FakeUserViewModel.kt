@@ -16,7 +16,6 @@ class FakeUserViewModel : IUserViewModel {
         currentRole = "Software Engineer (Preview)",
         skills = listOf(
             GetUserByIdQuery.Skill(
-                // FINAL FIX: Add the missing 'id' and 'category' to the Skill1 object
                 skill = GetUserByIdQuery.Skill1(id = "skill-1", name = "Android", category = "Framework"),
                 level = "Expert"
             ),
@@ -29,13 +28,11 @@ class FakeUserViewModel : IUserViewModel {
                 level = "Intermediate"
             )
         ),
-        yearsExperience = 5
+        yearsExperience = 5,
+        phone = "123-456-7890" ,
+        birthday = "01/01/2000" ,
     )
 
-
-    // Start the state with the successful fake data
     override val userState: StateFlow<UserState> = MutableStateFlow(UserState.Success(fakeUser))
-
-    // The function doesn't need to do anything for the preview
     override fun fetchCurrentUser() {}
 }

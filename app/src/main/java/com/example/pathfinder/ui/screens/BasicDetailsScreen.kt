@@ -2,6 +2,7 @@ package com.example.pathfinder.ui.screens
 
 import android.app.DatePickerDialog
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +35,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,7 +47,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,13 +54,23 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.pathfinder.R
+import com.example.pathfinder.ui.screens.fake.FakeProfileViewModel
+import com.example.pathfinder.viewmodel.IProfileViewModel
+import com.example.pathfinder.viewmodel.ProfileUiState
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BasicDetailsScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: IProfileViewModel
 ) {
+    val name by viewModel.name.collectAsState()
+    val phone by viewModel.phone.collectAsState()
+    val email by viewModel.email.collectAsState()
+    val birthday by viewModel.birthday.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var birthdayText by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -68,19 +80,37 @@ fun BasicDetailsScreen(
         imageUri = uri
     }
     val calendar = Calendar.getInstance()
-    val year = calendar.get(Calendar.YEAR)
-    val month = calendar.get(Calendar.MONTH)
-    val day = calendar.get(Calendar.DAY_OF_MONTH)
     val datePickerDialog = DatePickerDialog(
         context,
         { _, selectedYear, selectedMonth, selectedDayOfMonth ->
-            birthdayText = "$selectedDayOfMonth/${selectedMonth + 1}/$selectedYear"
-        }, year, month, day
+            // Call the new function here
+            viewModel.onBirthdayChange("$selectedDayOfMonth/${selectedMonth + 1}/$selectedYear")
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
     )
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchProfile()
+    }
+
+    LaunchedEffect(uiState) {
+        when (val state = uiState) {
+            is ProfileUiState.Success -> {
+                Toast.makeText(context, "Changes Saved!", Toast.LENGTH_SHORT).show()
+                viewModel.resetUiState()
+            }
+            is ProfileUiState.Error -> {
+                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                viewModel.resetUiState()
+            }
+            else -> {}
+        }
+    }
 
     Scaffold(
         topBar = {
-            // CHANGED: Using CenterAlignedTopAppBar for better title centering
             CenterAlignedTopAppBar(
                 title = {
                     Text(
@@ -147,15 +177,32 @@ fun BasicDetailsScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             // Input Fields
-            DetailTextField(label = "Name", initialValue = "James Harried")
+            DetailTextField(
+                label = "Name",
+                value = name,
+                // Call the ViewModel function on change
+                onValueChange = { newName -> viewModel.onNameChange(newName) }
+            )
             Spacer(modifier = Modifier.height(24.dp))
-            DetailTextField(label = "Phone", initialValue = "123-456-7890")
+            DetailTextField(
+                label = "Phone",
+                value = phone,
+                // Call the ViewModel function on change
+                onValueChange = { newPhone -> viewModel.onPhoneChange(newPhone) }
+            )
             Spacer(modifier = Modifier.height(24.dp))
-            DetailTextField(label = "Email", initialValue = "example@email.com")
+            DetailTextField(
+                label = "Email",
+                value = email,
+                onValueChange = { /* Do nothing, email is read-only */ },
+                readOnly = true
+            )
             Spacer(modifier = Modifier.height(24.dp))
             DetailTextField(
                 label = "Birthday",
-                initialValue = birthdayText,
+                value = birthday,
+                // And call the new function here
+                onValueChange = { viewModel.onBirthdayChange(it) },
                 placeholder = "Set birthday",
                 readOnly = true,
                 onClick = { datePickerDialog.show() }
@@ -178,14 +225,17 @@ fun BasicDetailsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { /* Save */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
+                onClick = { viewModel.saveChanges() },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1DE9B6))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1DE9B6)),
+                enabled = uiState != ProfileUiState.Loading // Disable button when saving
             ) {
-                Text("Save changes", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                if (uiState == ProfileUiState.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
+                } else {
+                    Text("Save changes", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -198,19 +248,12 @@ fun BasicDetailsScreen(
 @Composable
 fun DetailTextField(
     label: String,
-    initialValue: String = "",
+    value: String, // <-- It now accepts a value
+    onValueChange: (String) -> Unit, // <-- And a callback to report changes
     placeholder: String = "",
     readOnly: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
-    var text by remember { mutableStateOf(TextFieldValue(initialValue)) }
-
-    LaunchedEffect(initialValue) {
-        if (text.text != initialValue) {
-            text = text.copy(text = initialValue)
-        }
-    }
-
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
@@ -220,8 +263,8 @@ fun DetailTextField(
         )
         Box(modifier = Modifier.then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)) {
             TextField(
-                value = text,
-                onValueChange = { text = it },
+                value = value, // <-- Use the passed-in value
+                onValueChange = onValueChange, // <-- Use the passed-in callback
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { if (placeholder.isNotEmpty()) Text(placeholder) },
                 shape = RoundedCornerShape(8.dp),
@@ -243,5 +286,6 @@ fun DetailTextField(
 @Preview(showBackground = true)
 @Composable
 fun BasicDetailsScreenPreview(){
-    BasicDetailsScreen(navController = rememberNavController())
+    val fakeNavController = rememberNavController()
+    BasicDetailsScreen(fakeNavController, viewModel = FakeProfileViewModel())
 }

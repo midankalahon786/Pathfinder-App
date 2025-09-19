@@ -27,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.pathfinder.ui.theme.PathfinderAITheme
 import com.example.pathfinder.viewmodel.AuthViewModel
+import com.example.pathfinder.viewmodel.ProfileViewModel
 import com.example.pathfinder.viewmodel.UserViewModel
 
 
@@ -36,6 +37,7 @@ val bottomNavItems = listOf(Screen.Home, Screen.Jobs, Screen.Learn, Screen.Setti
 fun PathfinderApp() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
+    val profileViewModel: ProfileViewModel = viewModel()
 
     NavHost(navController = navController, startDestination = Screen.Login.route) {
         composable(Screen.Login.route) {
@@ -65,7 +67,7 @@ fun PathfinderApp() {
             )
         }
         composable(Screen.BasicInfo.route) { BasicInfoScreen(navController) }
-        composable(Screen.BasicDetails.route){BasicDetailsScreen(navController)  }
+        composable(Screen.BasicDetails.route){BasicDetailsScreen(navController, profileViewModel)  }
         composable(Screen.SkillsExpertise.route) { SkillsExpertiseScreen(navController) }
         composable(
             route = Screen.SkillsDetails.route, // Use the route from the Screen sealed class

@@ -1,0 +1,9 @@
+mutation UpdateUser($id: ID!, $name: String, $phone: String, $birthday: String) {
+    updateUser(id: $id, data: { name: $name, phone: $phone, birthday: $birthday }) {
+        id
+        name
+        phone
+        birthday
+        email
+    }
+}
