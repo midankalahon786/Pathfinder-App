@@ -1,7 +1,5 @@
 package com.example.pathfinder.ui.screens
 
-import android.annotation.SuppressLint
-import android.app.Application
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,11 +33,9 @@ import com.example.pathfinder.ui.theme.GraySwitchUser
 import com.example.pathfinder.ui.theme.LightPurpleBackground
 import com.example.pathfinder.ui.theme.MediumGrayText
 import com.example.pathfinder.ui.theme.RedLogOut
-import com.example.pathfinder.viewmodel.AuthViewModel
 import com.example.pathfinder.viewmodel.IAuthViewModel
 import com.example.pathfinder.viewmodel.IUserViewModel
 import com.example.pathfinder.viewmodel.UserState
-import com.example.pathfinder.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
