@@ -1,16 +1,27 @@
 package com.example.pathfinder.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pathfinder.graphql.LoginMutation
 import com.example.pathfinder.graphql.RegisterMutation
 import com.example.pathfinder.model.AuthSuccessData
 import com.example.pathfinder.network.apolloClient
+import com.example.pathfinder.network.data.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-// Represents the state of the authentication UI
+interface IAuthViewModel {
+    val authState: StateFlow<AuthState>
+    fun register(email: String, password: String, name: String)
+    fun login(email: String, password: String)
+    fun logout()
+    fun resetState()
+}
+
 sealed interface AuthState {
     object Idle : AuthState
     object Loading : AuthState
@@ -18,12 +29,21 @@ sealed interface AuthState {
     data class Error(val message: String) : AuthState
 }
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(application: Application) : AndroidViewModel(application), IAuthViewModel {
+
+    private val tokenManager = TokenManager(application)
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
-    val authState = _authState.asStateFlow()
+    override val authState = _authState.asStateFlow()
 
-    fun register(email: String, password: String, name: String) {
+    private fun handleAuthSuccess(successData: AuthSuccessData) {
+        Log.d("AuthViewModel", "Saving token and userId: ${successData.userId}")
+        tokenManager.saveToken(successData.token)
+        tokenManager.saveUserId(successData.userId)
+        _authState.value = AuthState.Success(successData)
+    }
+
+   override fun register(email: String, password: String, name: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
@@ -35,11 +55,9 @@ class AuthViewModel : ViewModel() {
                     )
                 ).execute()
 
-                // 1. Get the payload from the 'register' field
                 val registerPayload = response.data?.register
 
                 if (registerPayload != null && !response.hasErrors()) {
-                    // 2. Access the data through the 'authPayload' property (named after your fragment)
                     val fragmentData = registerPayload.authPayload
 
                     val successData = AuthSuccessData(
@@ -48,6 +66,7 @@ class AuthViewModel : ViewModel() {
                         userName = fragmentData.user.name,
                         userEmail = fragmentData.user.email
                     )
+                    handleAuthSuccess(successData)
                     _authState.value = AuthState.Success(successData)
                 } else {
                     // Added missing error handling
@@ -60,7 +79,7 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun login(email: String, password: String) {
+   override fun login(email: String, password: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
@@ -84,6 +103,7 @@ class AuthViewModel : ViewModel() {
                         userName = fragmentData.user.name,
                         userEmail = fragmentData.user.email
                     )
+                    handleAuthSuccess(successData)
                     _authState.value = AuthState.Success(successData)
                 } else {
                     val errorMessage = response.errors?.firstOrNull()?.message ?: "Login failed"
@@ -95,8 +115,13 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    override fun logout() {
+        tokenManager.clear()
+    }
+
     // Function to reset the state, e.g., after an error message is shown
-    fun resetState() {
+    override fun resetState() {
         _authState.value = AuthState.Idle
     }
 }
+

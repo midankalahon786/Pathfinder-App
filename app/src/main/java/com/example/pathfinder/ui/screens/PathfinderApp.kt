@@ -27,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.pathfinder.ui.theme.PathfinderAITheme
 import com.example.pathfinder.viewmodel.AuthViewModel
+import com.example.pathfinder.viewmodel.UserViewModel
 
 
 val bottomNavItems = listOf(Screen.Home, Screen.Jobs, Screen.Learn, Screen.Settings)
@@ -144,7 +145,14 @@ fun MainScreen(navController: NavController) {
             composable(Screen.Jobs.route) { JobsScreen() }
             composable(Screen.Learn.route) { LearnScreen() }
             composable(Screen.Settings.route) {
-                SettingsScreen(navController = navController)
+                val authViewModel: AuthViewModel = viewModel()
+                val userViewModel: UserViewModel = viewModel()
+
+                SettingsScreen(
+                    navController = navController,
+                    authViewModel = authViewModel,
+                    userViewModel = userViewModel
+                )
             }
         }
     }

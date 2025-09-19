@@ -1,5 +1,7 @@
 package com.example.pathfinder.ui.screens
 
+import android.annotation.SuppressLint
+import android.app.Application
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,6 +11,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,69 +23,94 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
+import com.example.pathfinder.ui.screens.fake.FakeAuthViewModel
+import com.example.pathfinder.ui.screens.fake.FakeUserViewModel
 import com.example.pathfinder.ui.theme.DarkGrayText
 import com.example.pathfinder.ui.theme.DividerColor
 import com.example.pathfinder.ui.theme.GraySwitchUser
 import com.example.pathfinder.ui.theme.LightPurpleBackground
 import com.example.pathfinder.ui.theme.MediumGrayText
 import com.example.pathfinder.ui.theme.RedLogOut
+import com.example.pathfinder.viewmodel.AuthViewModel
+import com.example.pathfinder.viewmodel.IAuthViewModel
+import com.example.pathfinder.viewmodel.IUserViewModel
+import com.example.pathfinder.viewmodel.UserState
+import com.example.pathfinder.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController) {
-    val onLogout: () -> Unit = {
-        // Here you would clear any saved user data (tokens, preferences, etc.)
-        // For example:
-        // viewModel.clearUserSession()
+fun SettingsScreen(
+    navController: NavController,
+    authViewModel: IAuthViewModel,
+    userViewModel: IUserViewModel
+) {
+    val userState by userViewModel.userState.collectAsStateWithLifecycle()
 
-        // Navigate to the login screen and clear the back stack
+    LaunchedEffect(Unit) {
+        userViewModel.fetchCurrentUser()
+    }
+
+    val onLogout: () -> Unit = {
+        authViewModel.logout()
         navController.navigate(Screen.Login.route) {
-            popUpTo(0) // This clears the entire back stack
+            popUpTo(navController.graph.startDestinationId) { inclusive = true }
         }
     }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LightPurpleBackground) // Background color is now on the Column
+            .background(LightPurpleBackground)
             .padding(horizontal = 16.dp, vertical = 24.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.outline_person_24),
-                contentDescription = "Profile Picture",
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(Color.LightGray)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Anthony Moore",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        color = DarkGrayText,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
-                Text(
-                    text = "Joined Dec 28, 2020",
-                    style = MaterialTheme.typography.bodySmall.copy(color = MediumGrayText)
-                )
+        when (val state = userState) {
+            is UserState.Loading -> {
+                Box(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             }
-            Icon(
-                painterResource(R.drawable.outline_person_24),
-                contentDescription = "User Icon",
-                tint = MediumGrayText,
-                modifier = Modifier.size(24.dp)
-            )
+            is UserState.Success -> {
+                // Display the actual user data
+                state.user?.let { user ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.outline_person_24),
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(CircleShape)
+                                .background(Color.LightGray)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = user.name ?: "N/A",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    color = DarkGrayText,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            )
+                            Text(
+                                text = "Email: ${user.email}",
+                                style = MaterialTheme.typography.bodySmall.copy(color = MediumGrayText)
+                            )
+                        }
+                    }
+                }
+            }
+            is UserState.Error -> {
+                // Show an error message
+                Text("Error: ${state.message}", color = Color.Red, modifier = Modifier.padding(bottom = 24.dp))
+            }
         }
 
         // Account Section
@@ -215,6 +244,7 @@ fun SettingsItem(icon: Painter, text: String, onClick: () -> Unit) {
 @Composable
 fun PreviewAccountSettingsScreen() {
     MaterialTheme {
-        SettingsScreen(navController = rememberNavController())
+        val fakeNavController = rememberNavController()
+        SettingsScreen(fakeNavController, authViewModel = FakeAuthViewModel(), userViewModel = FakeUserViewModel())
     }
 }

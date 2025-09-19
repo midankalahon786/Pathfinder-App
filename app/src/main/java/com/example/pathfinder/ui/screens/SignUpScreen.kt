@@ -1,12 +1,12 @@
 package com.example.pathfinder.ui.screens
 
-import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,7 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,18 +26,18 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
 import com.example.pathfinder.network.data.TokenManager
+import com.example.pathfinder.ui.screens.fake.FakeAuthViewModel
 import com.example.pathfinder.ui.theme.LightPurpleBackground
 import com.example.pathfinder.ui.theme.PathfinderAITheme
-import com.example.pathfinder.viewmodel.AuthViewModel
 import com.example.pathfinder.viewmodel.AuthState
+import com.example.pathfinder.viewmodel.IAuthViewModel
 
-// Assuming Teal500 is defined in your theme
 val Teal500 = Color(0xFF009688) // Example color
 
 @Composable
 fun SignUpScreen(
     navController: NavController,
-    authViewModel: AuthViewModel, // Pass in the ViewModel
+    authViewModel: IAuthViewModel,
     onSignUpSuccess: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
@@ -43,7 +45,9 @@ fun SignUpScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
-    // --- Additions for ViewModel Integration ---
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
     val authState by authViewModel.authState.collectAsStateWithLifecycle()
@@ -63,7 +67,6 @@ fun SignUpScreen(
             else -> Unit
         }
     }
-    // --- End of Additions ---
 
     Box(
         modifier = Modifier
@@ -114,10 +117,18 @@ fun SignUpScreen(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Password") },
-                visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 enabled = areFieldsEnabled,
-                // ... (other modifiers)
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (passwordVisible) painterResource(R.drawable.baseline_visibility_24) else painterResource(R.drawable.baseline_visibility_off_24)
+                    val description = if (passwordVisible) "Hide password" else "Show password"
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(painter = image, contentDescription = description)
+                    }
+                }
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -125,15 +136,38 @@ fun SignUpScreen(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
                 label = { Text("Confirm Password") },
-                visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 enabled = areFieldsEnabled,
-                // ... (other modifiers)
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (confirmPasswordVisible) painterResource(R.drawable.baseline_visibility_24) else painterResource(R.drawable.baseline_visibility_off_24)
+                    val description = if (confirmPasswordVisible) "Hide password" else "Show password"
+                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                        Icon(painter = image, contentDescription = description)
+                    }
+                }
             )
+
+            if (confirmPassword.isNotEmpty()) {
+                val (message, color) = if (password == confirmPassword) {
+                    "Passwords match" to Color(0xFF006400) // Dark Green
+                } else {
+                    "Passwords do not match" to MaterialTheme.colorScheme.error
+                }
+                Text(
+                    text = message,
+                    color = color,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .padding(start = 4.dp, top = 4.dp)
+                        .fillMaxWidth()
+                )
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- Logic for Button and Loading Indicator ---
             if (authState == AuthState.Loading) {
                 CircularProgressIndicator()
             } else {
@@ -159,8 +193,6 @@ fun SignUpScreen(
                     Text("Sign Up", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
-            // --- End of Logic ---
-
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -184,14 +216,15 @@ fun SignUpScreen(
     }
 }
 
-
-@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun SignUpScreenPreview() {
     PathfinderAITheme {
-        val fakeNavController: NavController = rememberNavController()
-        val fakeAuthViewModel = AuthViewModel()
-        SignUpScreen(rememberNavController(), onSignUpSuccess = {}, authViewModel = fakeAuthViewModel)
+        val fakeNavController = rememberNavController()
+        SignUpScreen(
+            navController = fakeNavController,
+            onSignUpSuccess = {},
+            authViewModel = FakeAuthViewModel()
+        )
     }
 }

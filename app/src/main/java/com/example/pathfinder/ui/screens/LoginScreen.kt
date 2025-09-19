@@ -1,10 +1,12 @@
 package com.example.pathfinder.ui.screens
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,18 +26,20 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
 import com.example.pathfinder.network.data.TokenManager
+import com.example.pathfinder.ui.screens.fake.FakeAuthViewModel
 import com.example.pathfinder.ui.theme.PathfinderAITheme
-import com.example.pathfinder.viewmodel.AuthViewModel
 import com.example.pathfinder.viewmodel.AuthState
+import com.example.pathfinder.viewmodel.IAuthViewModel
 
 @Composable
 fun LoginScreen(
     navController: NavController,
-    authViewModel: AuthViewModel, // Pass in the ViewModel
+    authViewModel: IAuthViewModel, // Pass in the ViewModel
     onLoginSuccess: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     // --- Additions for ViewModel Integration ---
     val context = LocalContext.current
@@ -103,10 +108,26 @@ fun LoginScreen(
                     onValueChange = { password = it },
                     label = { Text("Password") },
                     modifier = Modifier.fillMaxWidth(),
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true,
-                    enabled = authState != AuthState.Loading // Disable field when loading
+                    enabled = authState != AuthState.Loading,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+
+                    // 3. Add the icon as a trailing icon
+                    trailingIcon = {
+                        val image = if (passwordVisible)
+                            painterResource(R.drawable.baseline_visibility_24)
+                        else painterResource(R.drawable.baseline_visibility_off_24)
+
+                        // Localized description for accessibility services
+                        val description = if (passwordVisible) "Hide password" else "Show password"
+
+                        // Toggle the password visibility when the icon is clicked
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(painter = image, contentDescription = description)
+                        }
+                    }
                 )
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -142,15 +163,17 @@ fun LoginScreen(
         }
     }
 }
-
-// Preview still works, but without ViewModel logic
-@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
     PathfinderAITheme {
-        val fakeNavController: NavController = rememberNavController()
-        val fakeAuthViewModel = AuthViewModel()
-        LoginScreen(fakeNavController, onLoginSuccess = {}, authViewModel = fakeAuthViewModel)
+        val fakeNavController = rememberNavController()
+
+        // Use the safe, fake ViewModel for the preview
+        LoginScreen(
+            navController = fakeNavController,
+            onLoginSuccess = {},
+            authViewModel = FakeAuthViewModel() // <-- Use the fake implementation
+        )
     }
 }
