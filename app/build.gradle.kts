@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.23"
+    id("com.apollographql.apollo3").version("3.8.2")
 }
 
 android {
@@ -39,11 +40,17 @@ android {
         compose = true
     }
 }
+apollo{
+    service("service"){
+        packageName.set("com.example.pathfinder.graphql")
+    }
+}
 
 dependencies {
     implementation("androidx.navigation:navigation-compose:2.9.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.2")
     implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

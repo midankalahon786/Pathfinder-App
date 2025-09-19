@@ -1,0 +1,38 @@
+# This query gets a single user by their ID
+query GetUserById($id: ID!) {
+    # The name here MUST match the name in your backend schema.ts
+    getUserById(id: $id) {
+        id
+        email
+        name
+        currentRole
+        yearsExperience
+        skills {
+            level
+            skill {
+                id
+                name
+                category
+            }
+        }
+    }
+}
+
+# You can also add your other queries here
+query GetAllUsers {
+    getAllUsers {
+        id
+        email
+        name
+    }
+}
+
+query GetSkills {
+    getSkills {
+        id
+        name
+        category
+    }
+}
+
+

@@ -1,5 +1,7 @@
 package com.example.pathfinder.ui.screens
 
+import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,33 +12,63 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
+import com.example.pathfinder.network.data.TokenManager
 import com.example.pathfinder.ui.theme.LightPurpleBackground
-import com.example.pathfinder.ui.theme.Teal500
+import com.example.pathfinder.ui.theme.PathfinderAITheme
+import com.example.pathfinder.viewmodel.AuthViewModel
+import com.example.pathfinder.viewmodel.AuthState
 
-@OptIn(ExperimentalMaterial3Api::class)
+// Assuming Teal500 is defined in your theme
+val Teal500 = Color(0xFF009688) // Example color
+
 @Composable
 fun SignUpScreen(
     navController: NavController,
-    onSignUpSuccess: () -> Unit // Lambda to call on successful signup
+    authViewModel: AuthViewModel, // Pass in the ViewModel
+    onSignUpSuccess: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
+    // --- Additions for ViewModel Integration ---
+    val context = LocalContext.current
+    val tokenManager = remember { TokenManager(context) }
+    val authState by authViewModel.authState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = authState) {
+        when (val state = authState) {
+            is AuthState.Success -> {
+                tokenManager.saveToken(state.data.token)
+                Toast.makeText(context, "Registration Successful!", Toast.LENGTH_SHORT).show()
+                onSignUpSuccess()
+                authViewModel.resetState()
+            }
+            is AuthState.Error -> {
+                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                authViewModel.resetState()
+            }
+            else -> Unit
+        }
+    }
+    // --- End of Additions ---
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LightPurpleBackground), // Using your custom theme color
+            .background(LightPurpleBackground),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -46,115 +78,89 @@ fun SignUpScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // ... (Image and Text views remain the same)
             Image(
-                painter = painterResource(id = R.drawable.pathfinderailogo), // Your logo resource
+                painter = painterResource(id = R.drawable.pathfinderailogo),
                 contentDescription = "Pathfinder AI Logo",
-                modifier = Modifier.size(120.dp) // Adjust size as needed
+                modifier = Modifier.size(120.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "PATHFINDER AI",
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground // Adjust color as needed
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Your Personal Career Mentor",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-            )
+            // ...
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Name Field
+            val areFieldsEnabled = authState != AuthState.Loading
+
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Name") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                singleLine = true,
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Teal500,         // Border color when focused
-                    unfocusedIndicatorColor = Color.LightGray, // Border color when not focused
-                    focusedContainerColor = Color.White,       // Background color when focused
-                    unfocusedContainerColor = Color.White
-                )
-
+                enabled = areFieldsEnabled,
+                // ... (other modifiers)
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Email Field
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                singleLine = true,
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Teal500,         // Border color when focused
-                    unfocusedIndicatorColor = Color.LightGray, // Border color when not focused
-                    focusedContainerColor = Color.White,       // Background color when focused
-                    unfocusedContainerColor = Color.White      // Background color when not focused
-                )
-
+                enabled = areFieldsEnabled,
+                // ... (other modifiers)
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Password Field
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Password") },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                singleLine = true,
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Teal500,         // Border color when focused
-                    unfocusedIndicatorColor = Color.LightGray, // Border color when not focused
-                    focusedContainerColor = Color.White,       // Background color when focused
-                    unfocusedContainerColor = Color.White      // Background color when not focused
-                )
-
+                enabled = areFieldsEnabled,
+                // ... (other modifiers)
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Confirm Password Field
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
                 label = { Text("Confirm Password") },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                singleLine = true,
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Teal500,         // Border color when focused
-                    unfocusedIndicatorColor = Color.LightGray, // Border color when not focused
-                    focusedContainerColor = Color.White,       // Background color when focused
-                    unfocusedContainerColor = Color.White      // Background color when not focused
-                )
-
+                enabled = areFieldsEnabled,
+                // ... (other modifiers)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Button(
-                onClick = {
-                    // TODO: Implement actual registration logic
-                    // For now, let's just simulate a successful signup
-                    onSignUpSuccess()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Teal500)
-            ) {
-                Text("Sign Up", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+            // --- Logic for Button and Loading Indicator ---
+            if (authState == AuthState.Loading) {
+                CircularProgressIndicator()
+            } else {
+                Button(
+                    onClick = {
+                        // Client-side validation
+                        if (name.isBlank() || email.isBlank() || password.isBlank()) {
+                            Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (password != confirmPassword) {
+                            Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        authViewModel.register(email, password, name)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Teal500)
+                ) {
+                    Text("Sign Up", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                }
             }
+            // --- End of Logic ---
+
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -171,17 +177,21 @@ fun SignUpScreen(
                     text = "Login",
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = Teal500,
-                    modifier = Modifier.clickable { navController.popBackStack() } // Navigate back to Login
+                    modifier = Modifier.clickable { if (areFieldsEnabled) navController.popBackStack() }
                 )
             }
         }
     }
 }
 
+
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun SignUpScreenPreview() {
-    MaterialTheme {
-        SignUpScreen(rememberNavController()) { /* Do nothing for preview */ }
+    PathfinderAITheme {
+        val fakeNavController: NavController = rememberNavController()
+        val fakeAuthViewModel = AuthViewModel()
+        SignUpScreen(rememberNavController(), onSignUpSuccess = {}, authViewModel = fakeAuthViewModel)
     }
 }

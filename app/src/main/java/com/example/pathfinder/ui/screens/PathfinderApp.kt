@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -25,6 +26,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.pathfinder.ui.theme.PathfinderAITheme
+import com.example.pathfinder.viewmodel.AuthViewModel
 
 
 val bottomNavItems = listOf(Screen.Home, Screen.Jobs, Screen.Learn, Screen.Settings)
@@ -32,22 +34,28 @@ val bottomNavItems = listOf(Screen.Home, Screen.Jobs, Screen.Learn, Screen.Setti
 @Composable
 fun PathfinderApp() {
     val navController = rememberNavController()
+    val authViewModel: AuthViewModel = viewModel()
 
     NavHost(navController = navController, startDestination = Screen.Login.route) {
         composable(Screen.Login.route) {
             LoginScreen(
-                navController = navController,onLoginSuccess = {
-                navController.navigate(Screen.Main.route) {
-                    popUpTo(Screen.Login.route) { inclusive = true }
+                navController = navController,
+                authViewModel = authViewModel, // <-- Pass the ViewModel here
+                onLoginSuccess = {
+                    navController.navigate(Screen.Main.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
                 }
-            })
+            )
         }
         composable(Screen.Main.route) { MainScreen(navController) }
         composable(Screen.SignUp.route) {
             SignUpScreen(
                 navController = navController,
+                authViewModel = authViewModel,
                 onSignUpSuccess = {
                     navController.navigate(Screen.Main.route) {
+                        // This popUpTo logic ensures the auth flow (Login/Sign Up) is cleared from the back stack
                         popUpTo(Screen.Login.route) {
                             inclusive = true
                         }
