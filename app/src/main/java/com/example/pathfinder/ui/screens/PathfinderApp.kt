@@ -163,21 +163,6 @@ fun MainScreen(navController: NavController) {
 }
 
 
-@Composable
-fun JobsScreen() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "Jobs Screen")
-    }
-}
-
-@Composable
-fun LearnScreen() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "Learn Screen")
-    }
-}
-
-
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
