@@ -43,10 +43,12 @@ class AuthViewModel(application: Application) : AndroidViewModel(application), I
         _authState.value = AuthState.Success(successData)
     }
 
-   override fun register(email: String, password: String, name: String) {
+    override fun register(email: String, password: String, name: String) {
+        Log.d("AuthViewModel", "Attempting to register user with email: $email")
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
+                Log.d("AuthViewModel", "Executing register mutation...")
                 val response = apolloClient.mutation(
                     RegisterMutation(
                         email = email,
@@ -58,6 +60,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application), I
                 val registerPayload = response.data?.register
 
                 if (registerPayload != null && !response.hasErrors()) {
+                    Log.d("AuthViewModel", "Registration successful. Processing response...")
                     val fragmentData = registerPayload.authPayload
 
                     val successData = AuthSuccessData(
@@ -67,22 +70,24 @@ class AuthViewModel(application: Application) : AndroidViewModel(application), I
                         userEmail = fragmentData.user.email
                     )
                     handleAuthSuccess(successData)
-                    _authState.value = AuthState.Success(successData)
                 } else {
-                    // Added missing error handling
                     val errorMessage = response.errors?.firstOrNull()?.message ?: "Registration failed"
+                    Log.e("AuthViewModel", "Registration failed. Error: $errorMessage")
                     _authState.value = AuthState.Error(errorMessage)
                 }
             } catch (e: Exception) {
+                Log.e("AuthViewModel", "Exception during registration: ${e.message}", e)
                 _authState.value = AuthState.Error(e.message ?: "An unknown error occurred")
             }
         }
     }
 
-   override fun login(email: String, password: String) {
+    override fun login(email: String, password: String) {
+        Log.d("AuthViewModel", "Attempting to log in user with email: $email")
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             try {
+                Log.d("AuthViewModel", "Executing login mutation...")
                 val response = apolloClient.mutation(
                     LoginMutation(
                         email = email,
@@ -90,11 +95,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application), I
                     )
                 ).execute()
 
-                // 1. Get the payload from the 'login' field
                 val loginPayload = response.data?.login
 
                 if (loginPayload != null && !response.hasErrors()) {
-                    // 2. Access the data through the 'authPayload' property (named after your fragment)
+                    Log.d("AuthViewModel", "Login successful. Processing response...")
                     val fragmentData = loginPayload.authPayload
 
                     val successData = AuthSuccessData(
@@ -104,24 +108,26 @@ class AuthViewModel(application: Application) : AndroidViewModel(application), I
                         userEmail = fragmentData.user.email
                     )
                     handleAuthSuccess(successData)
-                    _authState.value = AuthState.Success(successData)
                 } else {
                     val errorMessage = response.errors?.firstOrNull()?.message ?: "Login failed"
+                    Log.e("AuthViewModel", "Login failed. Error: $errorMessage")
                     _authState.value = AuthState.Error(errorMessage)
                 }
             } catch (e: Exception) {
+                Log.e("AuthViewModel", "Exception during login: ${e.message}", e)
                 _authState.value = AuthState.Error(e.message ?: "An unknown error occurred")
             }
         }
     }
 
     override fun logout() {
+        Log.d("AuthViewModel", "Clearing user session data.")
         tokenManager.clear()
+        _authState.value = AuthState.Idle // Set state to idle after logout
     }
 
-    // Function to reset the state, e.g., after an error message is shown
     override fun resetState() {
+        Log.d("AuthViewModel", "Resetting authentication state to Idle.")
         _authState.value = AuthState.Idle
     }
 }
-
