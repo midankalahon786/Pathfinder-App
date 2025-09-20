@@ -1,3 +1,4 @@
+// File: ui/screens/SkillsTabScreen.kt
 package com.example.pathfinder.ui.screens
 
 import androidx.compose.foundation.layout.*
@@ -9,31 +10,32 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.pathfinder.model.Skill // Assuming you have a Skill data class
+import com.example.pathfinder.model.UserSkillUI
+import com.example.pathfinder.ui.screens.fake.FakeSkillsViewModel
+import com.example.pathfinder.viewmodel.ISkillsViewModel
+import com.example.pathfinder.viewmodel.SkillsUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SkillsTabScreen(navController: NavController) {
-    val userSkills by remember {
-        mutableStateOf(
-            listOf(
-                Skill("Jetpack Compose", "Advanced"),
-                Skill("Kotlin", "Expert"),
-                Skill("Android Development", "Advanced"),
-                Skill("UI/UX Design", "Intermediate"),
-                Skill("RESTful APIs", "Intermediate")
-            )
-        )
+fun SkillsTabScreen(
+    navController: NavController,
+    viewModel: ISkillsViewModel
+) {
+    // Collect state from the ViewModel
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Fetch data when the screen is first displayed
+    LaunchedEffect(Unit) {
+        viewModel.fetchUserSkills()
     }
 
     Scaffold(
@@ -54,54 +56,64 @@ fun SkillsTabScreen(navController: NavController) {
         },
         floatingActionButtonPosition = FabPosition.End
     ) { paddingValues ->
-        if (userSkills.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No skills added yet. Tap '+' to add your first skill!",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+        // Handle the different UI states
+        when (val state = uiState) {
+            is SkillsUiState.Loading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(userSkills) { skill ->
-                    SkillItemCard(skill = skill, onClick = {
-                        // TODO: Navigate to skill details/edit screen
-                        // navController.navigate(Screen.EditSkill.createRoute(skill.id))
-                    })
+            is SkillsUiState.Error -> {
+                Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = state.message,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+            is SkillsUiState.Success -> {
+                if (state.userSkills.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No skills added yet. Tap '+' to add your first skill!",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(state.userSkills) { skill ->
+                            SkillItemCard(skill = skill, onClick = {
+                                // TODO: Navigate to skill details/edit screen
+                            })
+                        }
+                    }
                 }
             }
         }
     }
 }
 
+// Update SkillItemCard to use your UI model
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SkillItemCard(skill: Skill, onClick: () -> Unit) {
+fun SkillItemCard(skill: UserSkillUI, onClick: () -> Unit) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp),
-        onClick = onClick // Make the card clickable
+        onClick = onClick
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -112,7 +124,7 @@ fun SkillItemCard(skill: Skill, onClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = skill.proficiency,
+                    text = skill.level,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -126,11 +138,11 @@ fun SkillItemCard(skill: Skill, onClick: () -> Unit) {
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun PreviewSkillsTabScreen() {
     MaterialTheme {
-        SkillsTabScreen(navController = rememberNavController())
+        // In a real preview, you would create a FakeSkillsViewModel
+        SkillsTabScreen(navController = rememberNavController(), viewModel = FakeSkillsViewModel())
     }
 }

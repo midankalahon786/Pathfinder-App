@@ -6,6 +6,8 @@ query GetUserOnboardingData($id: ID!) {
         email
         phone
         birthday
+        gender
+        profileImageUrl
         currentRole
         yearsExperience
         highestQualification
@@ -28,6 +30,7 @@ query GetUserOnboardingData($id: ID!) {
             name
             description
             githubLink
+            status
         }
     }
 }

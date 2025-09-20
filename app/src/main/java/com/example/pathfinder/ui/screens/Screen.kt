@@ -32,6 +32,7 @@ sealed class Screen(val route: String, val label: String, val icon: IconSource) 
         fun createRoute(skillName: String) = "skills_details/$skillName"
     }
     object SkillsTab : Screen("skills_tab", "Skills Tab", IconSource.Vector(Icons.Filled.Star)) // Example icon
+    object Projects : Screen("projects", "Projects", IconSource.Vector(Icons.Default.Person))
     object RolesTitles : Screen("roles_titles", "Roles/Titles", IconSource.Resource(R.drawable.baseline_work_24)) // Example icon
     object CareerGoals : Screen("career_goals", "Career Goals", IconSource.Vector(Icons.Default.Person))
     object FinalReview : Screen("final_review", "Final Review", IconSource.Vector(Icons.Default.Person))

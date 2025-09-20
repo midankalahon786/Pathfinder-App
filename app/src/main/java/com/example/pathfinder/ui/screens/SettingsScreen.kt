@@ -115,7 +115,8 @@ fun SettingsScreen(
             items = listOf(
                 painterResource(R.drawable.outline_person_24) to "Personal details",
                 painterResource(R.drawable.baseline_star_24) to "Skills Tab",
-                painterResource(R.drawable.outline_person_book_24) to "Roles/Titles"
+                painterResource(R.drawable.outline_person_book_24) to "Roles/Titles",
+                painterResource(R.drawable.baseline_work_24) to "Projects"
             ),
             onItemClick = { clickedItem ->
 
@@ -127,6 +128,9 @@ fun SettingsScreen(
                 }
                 if (clickedItem == "Roles/Titles") {
                     navController.navigate(Screen.RolesTitles.route)
+                }
+                if(clickedItem == "Projects"){
+                    navController.navigate(Screen.Projects.route)
                 }
             }
         )

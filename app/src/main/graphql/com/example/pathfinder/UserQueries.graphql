@@ -1,6 +1,5 @@
 # This query gets a single user by their ID
 query GetUserById($id: ID!) {
-    # The name here MUST match the name in your backend schema.ts
     getUserById(id: $id) {
         id
         email
@@ -10,9 +9,10 @@ query GetUserById($id: ID!) {
         currentRole
         yearsExperience
         skills {
+            id # This is the UserSkill ID
             level
             skill {
-                id
+                id      # <-- ADD THIS LINE
                 name
                 category
             }

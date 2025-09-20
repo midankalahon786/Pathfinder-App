@@ -38,7 +38,7 @@ class FakeOnboardingViewModel : IOnboardingViewModel {
     override val projects: StateFlow<List<ProjectUI>> =
         MutableStateFlow(
             listOf(
-                ProjectUI("proj1", "Pathfinder App", "A career guidance app.", "github.com/pathfinder")
+                ProjectUI("proj1", "Pathfinder App", "A career guidance app.", "github.com/pathfinder", status = "ACTIVE")
             )
         )
 

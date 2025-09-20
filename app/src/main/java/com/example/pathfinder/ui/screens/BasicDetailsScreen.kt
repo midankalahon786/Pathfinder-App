@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -25,7 +27,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -54,10 +59,12 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.pathfinder.R
+import com.example.pathfinder.graphql.type.Gender
 import com.example.pathfinder.ui.screens.fake.FakeProfileViewModel
 import com.example.pathfinder.viewmodel.IProfileViewModel
 import com.example.pathfinder.viewmodel.ProfileUiState
 import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,25 +72,31 @@ fun BasicDetailsScreen(
     navController: NavController,
     viewModel: IProfileViewModel
 ) {
+    // --- Collect state from the ViewModel ---
     val name by viewModel.name.collectAsState()
     val phone by viewModel.phone.collectAsState()
     val email by viewModel.email.collectAsState()
     val birthday by viewModel.birthday.collectAsState()
+    val gender by viewModel.gender.collectAsState()
+    val profileImageUrl by viewModel.profileImageUrl.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 
+    // This holds the URI of a newly selected image from the gallery
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var birthdayText by remember { mutableStateOf("") }
     val context = LocalContext.current
+
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         imageUri = uri
+        // In a real app, you would upload this URI to a server, get a URL,
+        // and then call something like viewModel.onProfileImageUrlChange(newUrl)
     }
+
     val calendar = Calendar.getInstance()
     val datePickerDialog = DatePickerDialog(
         context,
         { _, selectedYear, selectedMonth, selectedDayOfMonth ->
-            // Call the new function here
             viewModel.onBirthdayChange("$selectedDayOfMonth/${selectedMonth + 1}/$selectedYear")
         },
         calendar.get(Calendar.YEAR),
@@ -98,7 +111,7 @@ fun BasicDetailsScreen(
     LaunchedEffect(uiState) {
         when (val state = uiState) {
             is ProfileUiState.Success -> {
-                Toast.makeText(context, "Changes Saved!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
                 viewModel.resetUiState()
             }
             is ProfileUiState.Error -> {
@@ -112,22 +125,13 @@ fun BasicDetailsScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        "Basic Details",
-                        // No need for manual alignment modifiers here
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                // ADDED: The back button is the navigationIcon
+                title = { Text("Basic Details", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.White
-                )
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
             )
         },
         containerColor = Color.White
@@ -136,7 +140,8 @@ fun BasicDetailsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(32.dp))
@@ -148,7 +153,7 @@ fun BasicDetailsScreen(
             ) {
                 Image(
                     painter = rememberAsyncImagePainter(
-                        model = imageUri ?: R.drawable.outline_person_24
+                        model = imageUri ?: profileImageUrl ?: R.drawable.outline_person_24
                     ),
                     contentDescription = "Profile Picture",
                     modifier = Modifier
@@ -180,28 +185,32 @@ fun BasicDetailsScreen(
             DetailTextField(
                 label = "Name",
                 value = name,
-                // Call the ViewModel function on change
-                onValueChange = { newName -> viewModel.onNameChange(newName) }
+                onValueChange = { viewModel.onNameChange(it) }
             )
             Spacer(modifier = Modifier.height(24.dp))
+
+            GenderDropdown(
+                selectedGender = gender,
+                onGenderSelected = { viewModel.onGenderChange(it) }
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
             DetailTextField(
                 label = "Phone",
                 value = phone,
-                // Call the ViewModel function on change
-                onValueChange = { newPhone -> viewModel.onPhoneChange(newPhone) }
+                onValueChange = { viewModel.onPhoneChange(it) }
             )
             Spacer(modifier = Modifier.height(24.dp))
             DetailTextField(
                 label = "Email",
                 value = email,
-                onValueChange = { /* Do nothing, email is read-only */ },
+                onValueChange = { /* Email is read-only */ },
                 readOnly = true
             )
             Spacer(modifier = Modifier.height(24.dp))
             DetailTextField(
                 label = "Birthday",
                 value = birthday,
-                // And call the new function here
                 onValueChange = { viewModel.onBirthdayChange(it) },
                 placeholder = "Set birthday",
                 readOnly = true,
@@ -212,7 +221,7 @@ fun BasicDetailsScreen(
 
             // Buttons
             Button(
-                onClick = { /* Change Password */ },
+                onClick = { /* TODO: Implement Change Password navigation/logic */ },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -229,7 +238,7 @@ fun BasicDetailsScreen(
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1DE9B6)),
-                enabled = uiState != ProfileUiState.Loading // Disable button when saving
+                enabled = uiState != ProfileUiState.Loading
             ) {
                 if (uiState == ProfileUiState.Loading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
@@ -237,19 +246,16 @@ fun BasicDetailsScreen(
                     Text("Save changes", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
-
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
-// DetailTextField and Preview composable remain the same...
-
 @Composable
 fun DetailTextField(
     label: String,
-    value: String, // <-- It now accepts a value
-    onValueChange: (String) -> Unit, // <-- And a callback to report changes
+    value: String,
+    onValueChange: (String) -> Unit,
     placeholder: String = "",
     readOnly: Boolean = false,
     onClick: (() -> Unit)? = null
@@ -263,8 +269,8 @@ fun DetailTextField(
         )
         Box(modifier = Modifier.then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)) {
             TextField(
-                value = value, // <-- Use the passed-in value
-                onValueChange = onValueChange, // <-- Use the passed-in callback
+                value = value,
+                onValueChange = onValueChange,
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { if (placeholder.isNotEmpty()) Text(placeholder) },
                 shape = RoundedCornerShape(8.dp),
@@ -283,9 +289,72 @@ fun DetailTextField(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GenderDropdown(
+    selectedGender: Gender?,
+    onGenderSelected: (Gender) -> Unit
+) {
+    val options = Gender.entries.filter { it != Gender.UNKNOWN__ }
+    var expanded by remember { mutableStateOf(false) }
+    val displayText = selectedGender?.name?.replace("_", " ")?.lowercase(Locale.ROOT)
+        ?.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
+        ?: "Select Gender"
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Gender",
+            color = Color.DarkGray,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            TextField(
+                readOnly = true,
+                value = displayText,
+                onValueChange = {},
+                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                shape = RoundedCornerShape(8.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFFF5F5F5),
+                    unfocusedContainerColor = Color(0xFFF5F5F5),
+                    disabledContainerColor = Color(0xFFF5F5F5),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                options.forEach { selectionOption ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = selectionOption.name.replace("_", " ")
+                                    .lowercase(Locale.ROOT)
+                                    .replaceFirstChar { it.titlecase(Locale.ROOT) }
+                            )
+                        },
+                        onClick = {
+                            onGenderSelected(selectionOption)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+
 @Preview(showBackground = true)
 @Composable
-fun BasicDetailsScreenPreview(){
+fun BasicDetailsScreenPreview() {
     val fakeNavController = rememberNavController()
     BasicDetailsScreen(fakeNavController, viewModel = FakeProfileViewModel())
 }

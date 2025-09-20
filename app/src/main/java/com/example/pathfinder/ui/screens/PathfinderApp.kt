@@ -29,6 +29,9 @@ import com.example.pathfinder.ui.theme.PathfinderAITheme
 import com.example.pathfinder.viewmodel.AuthViewModel
 import com.example.pathfinder.viewmodel.OnboardingViewModel
 import com.example.pathfinder.viewmodel.ProfileViewModel
+import com.example.pathfinder.viewmodel.ProjectsViewModel
+import com.example.pathfinder.viewmodel.RolesViewModel
+import com.example.pathfinder.viewmodel.SkillsViewModel
 import com.example.pathfinder.viewmodel.UserViewModel
 
 
@@ -40,6 +43,9 @@ fun PathfinderApp() {
     val authViewModel: AuthViewModel = viewModel()
     val profileViewModel: ProfileViewModel = viewModel()
     val onboardingViewModel: OnboardingViewModel = viewModel()
+    val projectViewModel: ProjectsViewModel = viewModel()
+    val skillsViewModel: SkillsViewModel = viewModel()
+    val rolesViewModel: RolesViewModel = viewModel()
 
     NavHost(navController = navController, startDestination = Screen.Login.route) {
         composable(Screen.Login.route) {
@@ -80,8 +86,9 @@ fun PathfinderApp() {
                 SkillDetailScreen(navController = navController, skillName = skillName)
             }
         }
-        composable(Screen.SkillsTab.route) { SkillsTabScreen(navController = navController) }
-        composable(Screen.RolesTitles.route) { RolesTitlesScreen(navController = navController) }
+        composable(Screen.SkillsTab.route) { SkillsTabScreen(navController = navController, skillsViewModel) }
+        composable(Screen.Projects.route) { ProjectsScreen(navController, projectViewModel) }
+        composable(Screen.RolesTitles.route) { RolesTitlesScreen(navController = navController, rolesViewModel) }
         composable(Screen.CareerGoals.route) { CareerGoalsScreen(navController, onboardingViewModel) }
         composable(Screen.FinalReview.route) { FinalReviewScreen(navController, onboardingViewModel) }
         composable(Screen.Profile.route) { ProfileScreen() }

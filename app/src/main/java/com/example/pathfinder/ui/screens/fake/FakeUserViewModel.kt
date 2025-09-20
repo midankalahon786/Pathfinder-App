@@ -16,16 +16,23 @@ class FakeUserViewModel : IUserViewModel {
         currentRole = "Software Engineer (Preview)",
         skills = listOf(
             GetUserByIdQuery.Skill(
-                skill = GetUserByIdQuery.Skill1(id = "skill-1", name = "Android", category = "Framework"),
-                level = "Expert"
+                skill = GetUserByIdQuery.Skill1(
+                    id = "skill-1",
+                    name = "Android",
+                    category = "Framework"
+                ),
+                level = "Expert",
+                id = "1"
             ),
             GetUserByIdQuery.Skill(
                 skill = GetUserByIdQuery.Skill1(id = "skill-2", name = "Kotlin", category = "Language"),
-                level = "Expert"
+                level = "Expert",
+                id = "2"
             ),
             GetUserByIdQuery.Skill(
                 skill = GetUserByIdQuery.Skill1(id = "skill-3", name = "Compose", category = "UI Toolkit"),
-                level = "Intermediate"
+                level = "Intermediate",
+                id = "3"
             )
         ),
         yearsExperience = 5,

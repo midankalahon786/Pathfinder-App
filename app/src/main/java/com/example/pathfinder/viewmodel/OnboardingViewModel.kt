@@ -121,7 +121,8 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
                             projectId = it.id,
                             name = it.name,
                             description = it.description ?: "",
-                            githubLink = it.githubLink ?: ""
+                            githubLink = it.githubLink ?: "",
+                            status = it.status.name 
                         )
                     } ?: emptyList()
                     _uiState.value = UiState.Success("Data Loaded")
@@ -347,7 +348,10 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
     override fun onAddProject() {
         val currentProjects = projects.value.toMutableList()
         // Add a new blank project with a temporary unique ID
-        currentProjects.add(ProjectUI(projectId = UUID.randomUUID().toString(), name = "", description = "", githubLink = ""))
+        currentProjects.add(ProjectUI(
+            projectId = UUID.randomUUID().toString(), name = "", description = "", githubLink = "",
+            status = ""
+        ))
         projects.value = currentProjects
     }
 

@@ -1,0 +1,53 @@
+# =================================================================
+# Projects
+# =================================================================
+
+mutation AddProject(
+    $userId: ID!
+    $name: String!
+    $description: String
+    $githubLink: String
+    $status: ProjectStatus
+) {
+    addProject(
+        userId: $userId
+        name: $name
+        description: $description
+        githubLink: $githubLink
+        status: $status
+    ) {
+        id
+        name
+        description
+        githubLink
+        status
+    }
+}
+
+mutation UpdateProject(
+    $projectId: ID!
+    $name: String
+    $description: String
+    $githubLink: String
+    $status: ProjectStatus
+) {
+    updateProject(
+        projectId: $projectId
+        name: $name
+        description: $description
+        githubLink: $githubLink
+        status: $status
+    ) {
+        id
+        name
+        description
+        githubLink
+        status
+    }
+}
+
+mutation DeleteProject($projectId: ID!) {
+    deleteProject(projectId: $projectId) {
+        id # Return the ID of the deleted project for confirmation
+    }
+}
