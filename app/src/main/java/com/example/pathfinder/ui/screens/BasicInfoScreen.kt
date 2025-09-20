@@ -18,7 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,7 +34,6 @@ import com.example.pathfinder.ui.theme.TealButton
 import com.example.pathfinder.ui.theme.TealHeader
 import com.example.pathfinder.ui.theme.White
 import com.example.pathfinder.viewmodel.IOnboardingViewModel
-import com.example.pathfinder.viewmodel.OnboardingViewModel
 import com.example.pathfinder.viewmodel.UiState
 
 @OptIn(ExperimentalMaterial3Api::class)
