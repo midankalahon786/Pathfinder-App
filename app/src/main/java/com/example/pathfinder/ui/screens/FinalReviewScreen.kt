@@ -15,7 +15,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -30,8 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,26 +40,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.pathfinder.model.Project
+import com.example.pathfinder.model.ProjectUI
+import com.example.pathfinder.ui.screens.fake.FakeOnboardingViewModel
+import com.example.pathfinder.ui.theme.DarkBlueText
 import com.example.pathfinder.ui.theme.DividerColor
 import com.example.pathfinder.ui.theme.LightPurpleBackground
 import com.example.pathfinder.ui.theme.MediumGrayText
+import com.example.pathfinder.ui.theme.TealHeader
+import com.example.pathfinder.viewmodel.IOnboardingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FinalReviewScreen(navController: NavController) {
-    // State to hold a list of projects
-    val projectsList = remember {
-        mutableStateListOf(
-            Project(
-                name = "My First Project",
-                description = "",
-                githubLink = "https://github.com/my-first-project"
-            )
-        )
-    }
+fun FinalReviewScreen(
+    navController: NavController,
+    viewModel: IOnboardingViewModel
+) {
+    val projectsList by viewModel.projects.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = LightPurpleBackground,
@@ -69,8 +66,8 @@ fun FinalReviewScreen(navController: NavController) {
             TopAppBar(
                 title = { Text("Past Projects & Final Review", color = Color.White) },
                 navigationIcon = {
-                    IconButton(onClick = { /* Handle menu click */ }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = TealHeader)
@@ -106,7 +103,7 @@ fun FinalReviewScreen(navController: NavController) {
                     ProjectInputCard(
                         project = project,
                         onProjectChange = { updatedProject ->
-                            projectsList[index] = updatedProject
+                            viewModel.onProjectChange(index, updatedProject)
                         },
                         projectNumber = index + 1
                     )
@@ -121,10 +118,8 @@ fun FinalReviewScreen(navController: NavController) {
                 pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
             )
             Button(
-                onClick = { projectsList.add(Project("", "", "")) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
+                onClick = { viewModel.onAddProject() },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White,
@@ -137,7 +132,7 @@ fun FinalReviewScreen(navController: NavController) {
                 Text("Add More")
             }
 
-            Spacer(modifier = Modifier.weight(1f)) // Pushes buttons to the bottom
+            Spacer(modifier = Modifier.weight(1f))
 
             // Navigation Buttons
             Button(
@@ -157,7 +152,7 @@ fun FinalReviewScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { /* Handle final submission */ },
+                onClick = { viewModel.submitFinalReview() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -173,8 +168,8 @@ fun FinalReviewScreen(navController: NavController) {
 
 @Composable
 fun ProjectInputCard(
-    project: Project,
-    onProjectChange: (Project) -> Unit,
+    project: ProjectUI, // Use the UI model
+    onProjectChange: (ProjectUI) -> Unit,
     projectNumber: Int
 ) {
     Card(
@@ -197,9 +192,7 @@ fun ProjectInputCard(
                 value = project.description,
                 onValueChange = { onProjectChange(project.copy(description = it)) },
                 label = { Text("Project $projectNumber Description") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
+                modifier = Modifier.fillMaxWidth().height(120.dp)
             )
             OutlinedTextField(
                 value = project.githubLink,
@@ -215,6 +208,6 @@ fun ProjectInputCard(
 @Composable
 fun FinalReviewScreenPreview() {
     MaterialTheme {
-        FinalReviewScreen(navController = rememberNavController())
+        FinalReviewScreen(navController = rememberNavController(), viewModel = FakeOnboardingViewModel())
     }
 }

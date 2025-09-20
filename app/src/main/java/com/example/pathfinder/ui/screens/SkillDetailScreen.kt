@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.model.Course
 import com.example.pathfinder.model.Role
 import com.example.pathfinder.R
+import com.example.pathfinder.ui.theme.TealHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

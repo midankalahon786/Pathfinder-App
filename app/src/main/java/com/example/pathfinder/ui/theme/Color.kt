@@ -31,3 +31,7 @@ val GrayButton = Color(0xFF8D94A0)
 val TealButton = Color(0xFF1DE9B6)
 val White = Color.White
 val TealIconBg = Color(0xFF16DBC4)
+
+val TealHeader = Color(0xFF4DB6AC)
+val LightGrayField = Color(0xFFF0F0F0)
+val DarkBlueText = Color(0xFF004D40)

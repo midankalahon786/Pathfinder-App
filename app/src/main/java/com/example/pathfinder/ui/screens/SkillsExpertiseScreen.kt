@@ -21,22 +21,40 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
 import com.example.pathfinder.model.Skill
+import com.example.pathfinder.model.UserSkillUI
+import com.example.pathfinder.ui.screens.fake.FakeOnboardingViewModel
+import com.example.pathfinder.ui.theme.DarkBlueText
 import com.example.pathfinder.ui.theme.DividerColor
 import com.example.pathfinder.ui.theme.LightGrayBackground
 import com.example.pathfinder.ui.theme.MediumGrayText
+import com.example.pathfinder.ui.theme.TealHeader
 import com.example.pathfinder.ui.theme.White
-
-val DarkBlueText = Color(0xFF004D40)
+import com.example.pathfinder.viewmodel.IOnboardingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SkillsExpertiseScreen(navController: NavController) {
+fun SkillsExpertiseScreen(
+    navController: NavController,
+    viewModel: IOnboardingViewModel
+) {
 
     var menuExpanded by remember { mutableStateOf(false) }
+    var expandedStateMap by remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
+
+    val userSkills by viewModel.userSkills.collectAsStateWithLifecycle()
+    val allSkills by viewModel.allSkills.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.skillSearchQuery.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchAllSkills()
+    }
+
 
     val completedSteps = listOf(
         "Basic Info" to Screen.BasicInfo.route,
@@ -121,7 +139,7 @@ fun SkillsExpertiseScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = "",
-                        onValueChange = { /* Handle search */ },
+                        onValueChange = { viewModel.onSkillSearchQueryChange(it) },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("Search for skills") },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
@@ -154,16 +172,24 @@ fun SkillsExpertiseScreen(navController: NavController) {
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
-                    skillsList.forEachIndexed { index, skill ->
+                    userSkills.forEachIndexed { index, skill ->
                         SkillProficiencyRow(
                             skill = skill,
-                            onSkillChange = { updatedSkill -> skillsList[index] = updatedSkill }
+                            onSkillChange = { updatedSkill ->
+                                viewModel.onUserSkillChange(index, updatedSkill)
+                            },
+                            isExpanded = expandedStateMap[skill.userSkillId] ?: false,
+                            onExpandedChange = { isExpanded ->
+                                expandedStateMap = expandedStateMap.toMutableMap().apply {
+                                    this[skill.userSkillId] = isExpanded
+                                }
+                            }
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
 
                     IconButton(
-                        onClick = { skillsList.add(Skill("", "Proficiency")) },
+                        onClick = { viewModel.onAddNewSkillRow() },
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
                             .border(1.dp, DividerColor, CircleShape)
@@ -196,22 +222,20 @@ fun SkillsExpertiseScreen(navController: NavController) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SkillProficiencyRow(
-    skill: Skill,
-    onSkillChange: (Skill) -> Unit
+    skill: UserSkillUI, // Use your UI model
+    onSkillChange: (UserSkillUI) -> Unit,
+    isExpanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit
 ) {
     val proficiencyOptions = listOf("Beginner", "Intermediate", "Advanced", "Certified")
-    var expanded by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Checkbox added here
-        Checkbox(
-            checked = skill.isSelected,
-            onCheckedChange = { onSkillChange(skill.copy(isSelected = it)) }
-        )
+        // This Checkbox is no longer needed here if you handle selection via adding/removing skills
+        // For now we'll leave it, but it might represent a "delete" action later.
 
         OutlinedTextField(
             value = skill.name,
@@ -222,28 +246,28 @@ fun SkillProficiencyRow(
         )
 
         ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
+            expanded = isExpanded, // Use the passed-in state
+            onExpandedChange = onExpandedChange, // Use the passed-in callback
             modifier = Modifier.weight(0.7f)
         ) {
             OutlinedTextField(
                 readOnly = true,
-                value = skill.proficiency,
+                value = skill.level,
                 onValueChange = {},
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
                 modifier = Modifier.menuAnchor(),
                 shape = RoundedCornerShape(8.dp),
             )
             ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
+                expanded = isExpanded,
+                onDismissRequest = { onExpandedChange(false) } // Use the callback
             ) {
                 proficiencyOptions.forEach { option ->
                     DropdownMenuItem(
                         text = { Text(option) },
                         onClick = {
-                            onSkillChange(skill.copy(proficiency = option))
-                            expanded = false
+                            onSkillChange(skill.copy(level = option))
+                            onExpandedChange(false) // Use the callback
                         }
                     )
                 }
@@ -293,5 +317,5 @@ fun NavigationButton(
 @Preview(showBackground = true)
 @Composable
 fun PreviewSkillsExpertiseScreen() {
-    SkillsExpertiseScreen(navController = rememberNavController())
+    SkillsExpertiseScreen(navController = rememberNavController(), viewModel = FakeOnboardingViewModel())
 }

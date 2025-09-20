@@ -25,6 +25,7 @@ import com.example.pathfinder.R
 import com.example.pathfinder.network.data.TokenManager
 import com.example.pathfinder.ui.screens.fake.FakeAuthViewModel
 import com.example.pathfinder.ui.theme.PathfinderAITheme
+import com.example.pathfinder.ui.theme.TealHeader
 import com.example.pathfinder.viewmodel.AuthState
 import com.example.pathfinder.viewmodel.IAuthViewModel
 

@@ -1,6 +1,7 @@
 package com.example.pathfinder.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,8 +11,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -35,8 +39,8 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,23 +49,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
+import com.example.pathfinder.ui.screens.fake.FakeOnboardingViewModel
+import com.example.pathfinder.ui.theme.DarkBlueText
 import com.example.pathfinder.ui.theme.DarkGrayText
 import com.example.pathfinder.ui.theme.DividerColor
 import com.example.pathfinder.ui.theme.LightPurpleBackground
 import com.example.pathfinder.ui.theme.MediumGrayText
+import com.example.pathfinder.ui.theme.TealHeader
 import com.example.pathfinder.ui.theme.White
-
+import com.example.pathfinder.viewmodel.IOnboardingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CareerGoalsScreen(navController: NavController) {
-
+fun CareerGoalsScreen(
+    navController: NavController,
+    viewModel: IOnboardingViewModel
+) {
     var menuExpanded by remember { mutableStateOf(false) }
+    val searchText by viewModel.careerSearchQuery.collectAsStateWithLifecycle()
+    val allCareerPaths by viewModel.allCareerPaths.collectAsStateWithLifecycle()
+    val selectedRoles by viewModel.userCareerGoals.collectAsStateWithLifecycle()
+    val longTermGoalDescription by viewModel.longTermGoal.collectAsStateWithLifecycle()
 
     val completedSteps = listOf(
         "Basic Info" to Screen.BasicInfo.route,
@@ -69,16 +84,9 @@ fun CareerGoalsScreen(navController: NavController) {
         "Career Goals" to Screen.CareerGoals.route
     )
 
-    var searchText by remember { mutableStateOf("") }
-    val selectedRoles = remember {
-        mutableStateListOf(
-            "AI & Machine Learning",
-            "Cloud Computing",
-            "Cyber Security",
-            "DevOps"
-        )
+    LaunchedEffect(Unit) {
+        viewModel.fetchAllCareerPaths()
     }
-    var longTermGoalDescription by remember { mutableStateOf("") }
 
     Scaffold(
         containerColor = LightPurpleBackground,
@@ -87,13 +95,21 @@ fun CareerGoalsScreen(navController: NavController) {
                 title = { Text("Career Goals & Ambitions", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = White)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = White
+                        )
                     }
                 },
                 actions = {
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Show Steps", tint = White)
+                            Icon(
+                                Icons.Default.MoreVert,
+                                contentDescription = "Show Steps",
+                                tint = White
+                            )
                         }
                         DropdownMenu(
                             expanded = menuExpanded,
@@ -116,7 +132,6 @@ fun CareerGoalsScreen(navController: NavController) {
                 )
             )
         }
-        // Removed the bottomBar with the "Save" button
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -127,7 +142,6 @@ fun CareerGoalsScreen(navController: NavController) {
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- UPDATED HEADER ---
             Text(
                 text = "Your Ambitions",
                 style = MaterialTheme.typography.headlineSmall.copy(
@@ -140,7 +154,7 @@ fun CareerGoalsScreen(navController: NavController) {
                 text = "Tell us what you want to achieve.\nThis will help us tailor recommendations to your goals!",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MediumGrayText,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
             Spacer(modifier = Modifier.height(24.dp))
@@ -156,7 +170,7 @@ fun CareerGoalsScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = searchText,
-                        onValueChange = { searchText = it },
+                        onValueChange = { viewModel.onCareerSearchQueryChange(it) },
                         placeholder = { Text("Search for roles") },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
                         modifier = Modifier.fillMaxWidth(),
@@ -171,13 +185,38 @@ fun CareerGoalsScreen(navController: NavController) {
                         )
                     )
                 }
+
+                val filteredPaths = allCareerPaths.filter {
+                    it.title.contains(searchText, ignoreCase = true) &&
+                            selectedRoles.none { sr -> sr.id == it.id }
+                }
+                if (searchText.isNotBlank() && filteredPaths.isNotEmpty()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .heightIn(max = 200.dp)
+                            .padding(top = 8.dp)
+                    ) {
+                        items(filteredPaths) { careerPath ->
+                            Text(
+                                text = careerPath.title,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        viewModel.addUserCareerGoal(careerPath.id)
+                                        viewModel.onCareerSearchQueryChange("") // Clear search
+                                    }
+                                    .padding(vertical = 8.dp)
+                            )
+                        }
+                    }
+                }
             }
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Selected Roles Card ---
+            // --- Selected Roles ---
             Card(shape = RoundedCornerShape(12.dp)) {
                 Column(Modifier.padding(16.dp)) {
-                    // You can add the drag handle icon here if needed
                     Text(
                         text = "Selected Roles & Domains",
                         style = MaterialTheme.typography.titleMedium,
@@ -187,13 +226,14 @@ fun CareerGoalsScreen(navController: NavController) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         selectedRoles.forEach { role ->
                             RoleChip(
-                                text = role,
-                                onDelete = { selectedRoles.remove(role) }
+                                text = role.title,
+                                onDelete = { viewModel.removeUserCareerGoal(role.id) }
                             )
                         }
                     }
                 }
             }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // --- Long Term Goals Input ---
@@ -205,7 +245,7 @@ fun CareerGoalsScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = longTermGoalDescription,
-                onValueChange = { longTermGoalDescription = it },
+                onValueChange = { viewModel.onLongTermGoalChange(it) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp),
@@ -224,7 +264,7 @@ fun CareerGoalsScreen(navController: NavController) {
             // --- Navigation Buttons ---
             NavigationButton(
                 text = "Skills & Expertise",
-                onClick = { navController.navigateUp() }, // Navigates back
+                onClick = { navController.navigateUp() },
                 leadingIcon = painterResource(R.drawable.baseline_arrow_back_24)
             )
 
@@ -236,6 +276,7 @@ fun CareerGoalsScreen(navController: NavController) {
                 leadingIcon = painterResource(R.drawable.baseline_workspace_premium_24),
                 trailingIcon = painterResource(R.drawable.outline_chevron_right_24)
             )
+
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -244,7 +285,7 @@ fun CareerGoalsScreen(navController: NavController) {
 @Composable
 fun RoleChip(text: String, onDelete: () -> Unit) {
     OutlinedButton(
-        onClick = { /* Optional: Handle click on the chip itself */ },
+        onClick = { /* Optional: Handle click */ },
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -274,6 +315,9 @@ fun RoleChip(text: String, onDelete: () -> Unit) {
 @Composable
 fun CareerGoalsScreenPreview() {
     MaterialTheme {
-        CareerGoalsScreen(navController = rememberNavController())
+        CareerGoalsScreen(
+            navController = rememberNavController(),
+            viewModel = FakeOnboardingViewModel()
+        )
     }
 }

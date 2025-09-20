@@ -1,5 +1,6 @@
 package com.example.pathfinder.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,31 +15,61 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
+import com.example.pathfinder.ui.screens.fake.FakeOnboardingViewModel
 import com.example.pathfinder.ui.theme.DarkGrayText
 import com.example.pathfinder.ui.theme.LightGrayBackground
+import com.example.pathfinder.ui.theme.LightGrayField
 import com.example.pathfinder.ui.theme.MediumGrayText
 import com.example.pathfinder.ui.theme.TealButton
+import com.example.pathfinder.ui.theme.TealHeader
 import com.example.pathfinder.ui.theme.White
-
-// 🎨 Color palette
-val TealHeader = Color(0xFF4DB6AC)
-val LightGrayField = Color(0xFFF0F0F0)
+import com.example.pathfinder.viewmodel.IOnboardingViewModel
+import com.example.pathfinder.viewmodel.OnboardingViewModel
+import com.example.pathfinder.viewmodel.UiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BasicInfoScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: IOnboardingViewModel
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val name by viewModel.name.collectAsStateWithLifecycle()
+    val email by viewModel.email.collectAsStateWithLifecycle()
+    val currentRole by viewModel.currentRole.collectAsStateWithLifecycle()
+    val yearsExperience by viewModel.yearsExperience.collectAsStateWithLifecycle()
+    val highestQualification by viewModel.highestQualification.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadInitialData()
+    }
+    LaunchedEffect(uiState) {
+        when (val state = uiState) {
+            is UiState.Success -> {
+                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+                // You can add logic to reset the state if needed
+            }
+            is UiState.Error -> {
+                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
+
 
     val completedSteps = listOf(
         "Basic Info" to Screen.BasicInfo.route,
@@ -121,27 +152,52 @@ fun BasicInfoScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     // Fields
-                    InfoTextField(label = "Name", initialValue = "James Harried")
+                    InfoTextField(
+                        label = "Name",
+                        value = name,
+                        onValueChange = { viewModel.onNameChange(it) }
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
-                    InfoTextField(label = "Email", initialValue = "example@email.com")
+                    InfoTextField(
+                        label = "Email",
+                        value = email,
+                        onValueChange = { /* Email is read-only from login */ },
+                        readOnly = true
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
-                    InfoTextField(label = "Current / Previous Job Title", initialValue = "Software Engineer")
+                    InfoTextField(
+                        label = "Current / Previous Job Title",
+                        value = currentRole,
+                        onValueChange = { viewModel.onCurrentRoleChange(it) }
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
-                    ExperienceDropdown()
+                    ExperienceDropdown(
+                        selectedValue = "$yearsExperience Year(s)",
+                        onSelectionChanged = {
+                            val years = it.filter { char -> char.isDigit() }.toIntOrNull() ?: 0
+                            viewModel.onYearsExperienceChange(years)
+                        }
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
-                    InfoTextField(label = "Highest Qualification", initialValue = "B.Tech CSE")
+                    InfoTextField(
+                        label = "Highest Qualification",
+                        value = highestQualification,
+                        onValueChange = { viewModel.onHighestQualificationChange(it) }
+                    )
                     Spacer(modifier = Modifier.height(32.dp))
 
                     // Save button
                     Button(
-                        onClick = { /* Handle Save action */ },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
+                        onClick = {
+                            viewModel.saveBasicInfo()
+                            // Navigate to the next screen in the flow
+                            navController.navigate(Screen.SkillsExpertise.route)
+                        },
+                        modifier = Modifier.fillMaxWidth().height(50.dp),
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = TealButton)
                     ) {
-                        Text("Save", color = White, fontSize = 16.sp)
+                        Text("Save & Continue", color = White, fontSize = 16.sp)
                     }
                 }
             }
@@ -191,8 +247,12 @@ fun BasicInfoScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InfoTextField(label: String, initialValue: String) {
-    var text by remember { mutableStateOf(TextFieldValue(initialValue)) }
+fun InfoTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    readOnly: Boolean = false
+) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
@@ -202,8 +262,8 @@ fun InfoTextField(label: String, initialValue: String) {
             modifier = Modifier.padding(bottom = 8.dp)
         )
         TextField(
-            value = text,
-            onValueChange = { text = it },
+            value = value,
+            onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             colors = TextFieldDefaults.colors(
@@ -213,17 +273,20 @@ fun InfoTextField(label: String, initialValue: String) {
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent
             ),
-            singleLine = true
+            singleLine = true,
+            readOnly = readOnly
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExperienceDropdown() {
-    val options = listOf("1 Year", "2 Years", "3 Years", "4 Years", "5+ Years")
+fun ExperienceDropdown(
+    selectedValue: String,
+    onSelectionChanged: (String) -> Unit
+) {
+    val options = listOf("0 Years", "1 Year", "2 Years", "3 Years", "4 Years", "5+ Years")
     var expanded by remember { mutableStateOf(false) }
-    var selectedOptionText by remember { mutableStateOf(options[0]) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -239,7 +302,7 @@ fun ExperienceDropdown() {
         ) {
             TextField(
                 readOnly = true,
-                value = selectedOptionText,
+                value = selectedValue, // Use the value passed from the parent
                 onValueChange = { },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 colors = TextFieldDefaults.colors(
@@ -249,7 +312,7 @@ fun ExperienceDropdown() {
                     focusedIndicatorColor = Color.Gray,
                     unfocusedIndicatorColor = Color.LightGray
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.menuAnchor().fillMaxWidth() // Added menuAnchor
             )
             ExposedDropdownMenu(
                 expanded = expanded,
@@ -259,7 +322,7 @@ fun ExperienceDropdown() {
                     DropdownMenuItem(
                         text = { Text(text = selectionOption) },
                         onClick = {
-                            selectedOptionText = selectionOption
+                            onSelectionChanged(selectionOption) // Report the change up to the parent
                             expanded = false
                         }
                     )
@@ -274,6 +337,6 @@ fun ExperienceDropdown() {
 fun PreviewBasicInfoScreen() {
     val fakeNavController: NavController = rememberNavController()
     MaterialTheme {
-        BasicInfoScreen(fakeNavController)
+        BasicInfoScreen(fakeNavController, viewModel = FakeOnboardingViewModel())
     }
 }

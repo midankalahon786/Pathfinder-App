@@ -1,0 +1,23 @@
+# This query gets all available career paths for the search functionality
+
+query GetCareerPaths {
+    getCareerPaths {
+        id
+        title
+        description
+    }
+}
+
+# This mutation adds a selected career path to the user's goals
+mutation AddUserCareerGoal($userId: ID!, $careerPathId: ID!) {
+    addUserCareerGoal(userId: $userId, careerPathId: $careerPathId) {
+        id # We can just return the user's ID to confirm it worked
+    }
+}
+
+# This mutation removes a career path from the user's goals
+mutation RemoveUserCareerGoal($userId: ID!, $careerPathId: ID!) {
+    removeUserCareerGoal(userId: $userId, careerPathId: $careerPathId) {
+        id
+    }
+}

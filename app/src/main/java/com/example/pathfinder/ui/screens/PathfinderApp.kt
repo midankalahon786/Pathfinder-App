@@ -27,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.pathfinder.ui.theme.PathfinderAITheme
 import com.example.pathfinder.viewmodel.AuthViewModel
+import com.example.pathfinder.viewmodel.OnboardingViewModel
 import com.example.pathfinder.viewmodel.ProfileViewModel
 import com.example.pathfinder.viewmodel.UserViewModel
 
@@ -38,6 +39,7 @@ fun PathfinderApp() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
     val profileViewModel: ProfileViewModel = viewModel()
+    val onboardingViewModel: OnboardingViewModel = viewModel()
 
     NavHost(navController = navController, startDestination = Screen.Login.route) {
         composable(Screen.Login.route) {
@@ -66,9 +68,9 @@ fun PathfinderApp() {
                 }
             )
         }
-        composable(Screen.BasicInfo.route) { BasicInfoScreen(navController) }
+        composable(Screen.BasicInfo.route) { BasicInfoScreen(navController,onboardingViewModel) }
         composable(Screen.BasicDetails.route){BasicDetailsScreen(navController, profileViewModel)  }
-        composable(Screen.SkillsExpertise.route) { SkillsExpertiseScreen(navController) }
+        composable(Screen.SkillsExpertise.route) { SkillsExpertiseScreen(navController, onboardingViewModel) }
         composable(
             route = Screen.SkillsDetails.route, // Use the route from the Screen sealed class
             arguments = listOf(navArgument("skillName") { type = NavType.StringType })
@@ -80,8 +82,8 @@ fun PathfinderApp() {
         }
         composable(Screen.SkillsTab.route) { SkillsTabScreen(navController = navController) }
         composable(Screen.RolesTitles.route) { RolesTitlesScreen(navController = navController) }
-        composable(Screen.CareerGoals.route) { CareerGoalsScreen(navController) }
-        composable(Screen.FinalReview.route) { FinalReviewScreen(navController) }
+        composable(Screen.CareerGoals.route) { CareerGoalsScreen(navController, onboardingViewModel) }
+        composable(Screen.FinalReview.route) { FinalReviewScreen(navController, onboardingViewModel) }
         composable(Screen.Profile.route) { ProfileScreen() }
         composable(Screen.Advisor.route) {
             AdvisorScreen(onNavigateUp = { navController.navigateUp() })

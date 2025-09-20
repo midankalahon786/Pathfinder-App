@@ -42,9 +42,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
+import com.example.pathfinder.ui.theme.DarkBlueText
 import com.example.pathfinder.ui.theme.DarkGrayText
 import com.example.pathfinder.ui.theme.LightPurpleBackground
 import com.example.pathfinder.ui.theme.MediumGrayText
+import com.example.pathfinder.ui.theme.TealHeader
 
 
 @OptIn(ExperimentalMaterial3Api::class)

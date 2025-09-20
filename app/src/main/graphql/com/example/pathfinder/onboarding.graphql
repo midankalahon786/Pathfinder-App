@@ -1,0 +1,55 @@
+# This query fetches everything needed for the entire onboarding flow
+query GetUserOnboardingData($id: ID!) {
+    getUserById(id: $id) {
+        id
+        name
+        email
+        phone
+        birthday
+        currentRole
+        yearsExperience
+        highestQualification
+        longTermGoal
+        skills {
+            id # This is the UserSkill ID, important for updates/deletes
+            level
+            skill {
+                id # This is the actual Skill ID
+                name
+                category
+            }
+        }
+        careerGoals {
+            id
+            title
+        }
+        projects {
+            id
+            name
+            description
+            githubLink
+        }
+    }
+}
+
+# Mutations for the flow
+mutation AddUserSkill($userId: ID!, $skillId: ID!, $level: String!) {
+    addUserSkill(userId: $userId, skillId: $skillId, level: $level) {
+        id
+    }
+}
+
+mutation UpdateUserSkill($userSkillId: ID!, $level: String!) {
+    updateUserSkill(userSkillId: $userSkillId, level: $level) {
+        id
+        level
+    }
+}
+
+mutation RemoveUserSkill($userSkillId: ID!) {
+    removeUserSkill(userSkillId: $userSkillId) {
+        id
+    }
+}
+
+# You can add the rest of the mutations (addProject, addUserCareerGoal, etc.) here
