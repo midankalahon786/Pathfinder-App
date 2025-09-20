@@ -28,6 +28,8 @@ import com.example.pathfinder.model.ChatMessage
 import com.example.pathfinder.ui.theme.PathfinderAITheme
 import com.example.pathfinder.viewmodel.AdvisorViewModel
 import com.example.pathfinder.viewmodel.AdvisorViewModelFactory
+import com.example.pathfinder.viewmodel.AuthState
+import com.example.pathfinder.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -35,20 +37,48 @@ fun AdvisorScreen(
     onNavigateUp: () -> Unit
 ) {
     val context = LocalContext.current.applicationContext
-    val advisorViewModel: AdvisorViewModel = viewModel(
-        factory = AdvisorViewModelFactory(context as Application)
-    )
 
-    val messages by advisorViewModel.messages.collectAsState()
-    val isLoading by advisorViewModel.isLoading.collectAsState()
+    // Get an instance of the AuthViewModel
+    val authViewModel: AuthViewModel = viewModel()
+    val authState by authViewModel.authState.collectAsState()
 
-    AdvisorScreenContent(
-        messages = messages,
-        isLoading = isLoading,
-        onSendMessage = { advisorViewModel.sendMessage(it) },
-        onNavigateUp = onNavigateUp,
-        onClearChat = {advisorViewModel.clearChatHistory()}
-    )
+    // Conditionally display content based on authentication state
+    when (val state = authState) {
+        is AuthState.Success -> {
+            val userId = state.data.userId
+
+            // Create and remember the ViewModel, passing the userId
+            val advisorViewModel: AdvisorViewModel = viewModel(
+                factory = remember {
+                    AdvisorViewModelFactory(context as Application, userId = userId)
+                }
+            )
+
+            val messages by advisorViewModel.messages.collectAsState()
+            val isLoading by advisorViewModel.isLoading.collectAsState()
+
+            AdvisorScreenContent(
+                messages = messages,
+                isLoading = isLoading,
+                onSendMessage = { advisorViewModel.sendMessage(it) },
+                onNavigateUp = onNavigateUp,
+                onClearChat = { advisorViewModel.clearChatHistory() }
+            )
+        }
+        AuthState.Loading -> {
+            // Show a loading indicator while fetching auth state
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        else -> {
+            // If not logged in, show an error or navigate back
+            // In a real app, you would navigate to the login screen
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Please log in to use the chat.")
+            }
+        }
+    }
 }
 
 

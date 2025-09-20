@@ -36,6 +36,35 @@ class AuthViewModel(application: Application) : AndroidViewModel(application), I
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     override val authState = _authState.asStateFlow()
 
+    init {
+        // Automatically check for a saved session when the ViewModel is created
+        Log.d("AuthViewModel", "ViewModel initialized. Checking for existing session.")
+        checkSession()
+    }
+
+    private fun checkSession() {
+        viewModelScope.launch {
+            val savedUserId = tokenManager.getUserId()
+            val savedToken = tokenManager.getToken()
+
+            if (savedUserId != null && savedToken != null) {
+                // If a token and userId exist, assume the user is logged in
+                Log.d("AuthViewModel", "Existing session found. Restoring session.")
+                _authState.value = AuthState.Success(
+                    AuthSuccessData(
+                        token = savedToken,
+                        userId = savedUserId,
+                        userName = "", // User name is not saved, so we can use a placeholder
+                        userEmail = "" // Email is not saved, so we can use a placeholder
+                    )
+                )
+            } else {
+                Log.d("AuthViewModel", "No existing session found.")
+                _authState.value = AuthState.Idle
+            }
+        }
+    }
+
     private fun handleAuthSuccess(successData: AuthSuccessData) {
         Log.d("AuthViewModel", "Saving token and userId: ${successData.userId}")
         tokenManager.saveToken(successData.token)

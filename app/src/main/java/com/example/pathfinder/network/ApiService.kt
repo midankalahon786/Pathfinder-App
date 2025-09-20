@@ -7,6 +7,6 @@ import retrofit2.http.POST
 
 
 interface ApiService {
-    @POST("chat") // The endpoint path from your server.js
+    @POST("/chat") // The endpoint path from your server.js
     suspend fun sendMessage(@Body request: ChatRequest): ChatResponse
 }

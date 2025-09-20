@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ChatRequest(
-    val prompt: String,
-    val history: List<Content>
+    val userId: String, // ADDED
+    val prompt: String
 )
 
 @Serializable

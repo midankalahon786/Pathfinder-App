@@ -16,7 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class AdvisorViewModel(private val repository: ChatHistoryRepository) : ViewModel() {
+class AdvisorViewModel(
+    private val repository: ChatHistoryRepository, private val userId: String) : ViewModel() {
 
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages = _messages.asStateFlow()
@@ -43,7 +44,7 @@ class AdvisorViewModel(private val repository: ChatHistoryRepository) : ViewMode
 
         val userMessage = ChatMessage(message = text, isFromUser = true)
 
-        // Add user message and save the updated list
+        // Add user message to local state
         val updatedMessages = _messages.value + userMessage
         _messages.value = updatedMessages
         viewModelScope.launch { repository.saveChatHistory(updatedMessages) }
@@ -51,13 +52,13 @@ class AdvisorViewModel(private val repository: ChatHistoryRepository) : ViewMode
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                // Prepare history for the API from the current message list
-                val apiHistory = _messages.value.map {
-                    val role = if (it.isFromUser) "user" else "model"
-                    Content(role = role, parts = listOf(Part(it.message)))
-                }
+                // FIX: The server doesn't need history, it fetches it itself.
+                // But we do need to send the userId.
+                val request = ChatRequest(userId = userId, prompt = text) // ADDED userId
 
-                val request = ChatRequest(prompt = text, history = apiHistory)
+                // Check if RetrofitClient.instance.sendMessage's request body is correct
+                // It needs to accept a ChatRequest with a userId field
+                // Make sure your Retrofit interface for ChatRequest has the userId field.
                 val response = RetrofitClient.instance.sendMessage(request)
                 val aiMessage = ChatMessage(message = response.response, isFromUser = false)
 
@@ -85,11 +86,12 @@ class AdvisorViewModel(private val repository: ChatHistoryRepository) : ViewMode
     }
 }
 
-class AdvisorViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+// In viewmodel/AdvisorViewModel.kt
+class AdvisorViewModelFactory(private val application: Application, private val userId: String) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AdvisorViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AdvisorViewModel(ChatHistoryRepository(application)) as T
+            return AdvisorViewModel(ChatHistoryRepository(application), userId) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
