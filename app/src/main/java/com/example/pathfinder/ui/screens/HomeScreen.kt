@@ -2,7 +2,16 @@ package com.example.pathfinder.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -16,9 +25,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,39 +35,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.pathfinder.R
 import com.example.pathfinder.model.Recommendations
-import com.example.pathfinder.model.Skill
+import com.example.pathfinder.model.SkillUI
+import com.example.pathfinder.ui.screens.fake.FakeHomeViewModel
 import com.example.pathfinder.ui.theme.DarkGrayText
 import com.example.pathfinder.ui.theme.GrayPlaceholder
 import com.example.pathfinder.ui.theme.LightPurpleBackground
 import com.example.pathfinder.ui.theme.Teal500
-import com.example.pathfinder.R
+import com.example.pathfinder.viewmodel.HomeUiState
+import com.example.pathfinder.viewmodel.IHomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: IHomeViewModel
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val trendingSkills by remember {
-        mutableStateOf(
-            listOf(
-                Skill("Jetpack Compose", "Beginner"),
-                Skill("Kotlin Multiplatform", "Intermediate")
-            )
-        )
+    LaunchedEffect(Unit) {
+        viewModel.fetchTrendingSkills()
     }
 
-    val personalizedRecommendations by remember {
-        mutableStateOf(
-            listOf(
-                Recommendations("Software Engineer"),
-                Recommendations("UI/UX Principles")
-            )
-        )
-    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -97,21 +98,33 @@ fun HomeScreen(
                 style = MaterialTheme.typography.titleMedium.copy(color = DarkGrayText),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                trendingSkills.forEach { skill ->
-                    SkillCard(
-                        skill = skill,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(120.dp),
-                        onClick = {
-                            // Navigate to the detail screen, passing the skill name as an argument
-                            navController.navigate(Screen.SkillsDetails.createRoute(skill.name))
+            when(val state = uiState) {
+                is HomeUiState.Loading -> {
+                    // Show placeholders or a loading indicator
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        SkillCard(skill = SkillUI("1", "Loading...", ""), modifier = Modifier.weight(1f).height(120.dp))
+                        SkillCard(skill = SkillUI("2", "Loading...", ""), modifier = Modifier.weight(1f).height(120.dp))
+                    }
+                }
+                is HomeUiState.Error -> {
+                    Text(text = state.message, color = MaterialTheme.colorScheme.error)
+                }
+                is HomeUiState.Success -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Take the first 2 skills as trending
+                        state.trendingSkills.take(2).forEach { skill ->
+                            SkillCard(
+                                skill = skill,
+                                modifier = Modifier.weight(1f).height(120.dp),
+                                onClick = {
+                                    navController.navigate(Screen.SkillsDetails.createRoute(skill.name))
+                                }
+                            )
                         }
-                    )
+                    }
                 }
             }
 
@@ -158,20 +171,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Existing Recommendations
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                personalizedRecommendations.forEach { recommendation ->
-                    RecommendationCard(
-                        recommendation = recommendation,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(120.dp)
-                    )
-                }
-            }
         }
 
         FloatingActionButton(
@@ -188,11 +187,11 @@ fun HomeScreen(
 }
 
 @Composable
-fun SkillCard(skill: Skill, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
+fun SkillCard(skill: SkillUI, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     Box(
         modifier = modifier
             .background(GrayPlaceholder, RoundedCornerShape(8.dp))
-            .clickable{onClick()},
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -226,6 +225,9 @@ fun RecommendationCard(recommendation: Recommendations, modifier: Modifier = Mod
 @Composable
 fun PreviewPathfinderScreen() {
     MaterialTheme {
-        HomeScreen(navController = rememberNavController())
+        HomeScreen(
+            navController = rememberNavController(),
+            viewModel = FakeHomeViewModel()
+        )
     }
 }

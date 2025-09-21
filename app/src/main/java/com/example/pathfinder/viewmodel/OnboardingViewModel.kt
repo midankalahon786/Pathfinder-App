@@ -106,7 +106,9 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
                     // Populate all the state flows with the fetched data
                     name.value = user.name ?: ""
                     email.value = user.email
-                    // ... populate all other states ...
+                    currentRole.value = user.currentRole ?: ""
+                    yearsExperience.value = user.yearsExperience ?: 0
+                    highestQualification.value = user.highestQualification ?: ""
                     userSkills.value = user.skills?.mapNotNull { it }?.map {
                         UserSkillUI(
                             userSkillId = it.id,
@@ -125,6 +127,15 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
                             status = it.status.name 
                         )
                     } ?: emptyList()
+
+                    longTermGoal.value = user.longTermGoal ?: ""
+                    userCareerGoals.value = user.careerGoals?.mapNotNull { it }?.map {
+                        CareerGoalUI(
+                            id = it.id,
+                            title = it.title
+                        )
+                    } ?: emptyList()
+
                     _uiState.value = UiState.Success("Data Loaded")
                 } ?: run { _uiState.value = UiState.Error("User not found") }
             } catch (e: Exception) {

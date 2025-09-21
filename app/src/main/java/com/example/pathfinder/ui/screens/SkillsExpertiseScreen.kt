@@ -73,7 +73,7 @@ fun SkillsExpertiseScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Skills & Expertise", color = Color.White) },
+                title = { Text("Skills & Expertise", color = Color.White, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = White)
@@ -133,14 +133,15 @@ fun SkillsExpertiseScreen(
                     Text(
                         text = "Select your current skills here",
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
-                        value = "",
+                        value = searchQuery,
                         onValueChange = { viewModel.onSkillSearchQueryChange(it) },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Search for skills") },
+                        placeholder = { Text("Search for skills", style = MaterialTheme.typography.bodySmall) },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
                         shape = RoundedCornerShape(8.dp),
                         colors = TextFieldDefaults.colors(
@@ -233,15 +234,17 @@ fun SkillProficiencyRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // This Checkbox is no longer needed here if you handle selection via adding/removing skills
-        // For now we'll leave it, but it might represent a "delete" action later.
 
         OutlinedTextField(
             value = skill.name,
             onValueChange = { onSkillChange(skill.copy(name = it)) },
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Enter Skill") },
+            placeholder = {
+                Text(
+                    text = "Enter Skill",
+                style = MaterialTheme.typography.bodySmall) },
             shape = RoundedCornerShape(8.dp),
+            textStyle = MaterialTheme.typography.bodySmall
         )
 
         ExposedDropdownMenuBox(
@@ -256,6 +259,7 @@ fun SkillProficiencyRow(
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
                 modifier = Modifier.menuAnchor(),
                 shape = RoundedCornerShape(8.dp),
+                textStyle = MaterialTheme.typography.bodySmall
             )
             ExposedDropdownMenu(
                 expanded = isExpanded,

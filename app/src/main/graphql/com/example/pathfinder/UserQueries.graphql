@@ -36,5 +36,32 @@ query GetSkills {
         category
     }
 }
+query GetSkillDetailsByName($name: String!) {
+    getSkillByName(name: $name) {
+        id
+        name
+        description
+        category
+        relatedRoles {
+            id
+            title
+        }
+        courses {
+            id
+            title
+            provider
+        }
+    }
+}
+query GetRecommendations($userId: ID!) {
+    getRecommendations(userId: $userId) {
+        id
+        message
+        career {
+            id
+            title
+        }
+    }
+}
 
 

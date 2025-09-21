@@ -78,7 +78,7 @@ fun BasicInfoScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Basic Info", color = White) },
+                title = { Text("Basic Info", color = White, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = White)
@@ -256,7 +256,8 @@ fun InfoTextField(
             text = label,
             color = DarkGrayText,
             fontWeight = FontWeight.SemiBold,
-            style = MaterialTheme.typography.bodyMedium,
+            // --- CHANGED to bodySmall for a smaller label ---
+            style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(bottom = 8.dp)
         )
         TextField(
@@ -291,7 +292,8 @@ fun ExperienceDropdown(
             text = "Years of Experience",
             color = DarkGrayText,
             fontWeight = FontWeight.SemiBold,
-            style = MaterialTheme.typography.bodyMedium,
+            // --- CHANGED to bodySmall for a smaller label ---
+            style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(bottom = 8.dp)
         )
         ExposedDropdownMenuBox(
@@ -310,7 +312,9 @@ fun ExperienceDropdown(
                     focusedIndicatorColor = Color.Gray,
                     unfocusedIndicatorColor = Color.LightGray
                 ),
-                modifier = Modifier.menuAnchor().fillMaxWidth() // Added menuAnchor
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth() // Added menuAnchor
             )
             ExposedDropdownMenu(
                 expanded = expanded,
@@ -338,3 +342,4 @@ fun PreviewBasicInfoScreen() {
         BasicInfoScreen(fakeNavController, viewModel = FakeOnboardingViewModel())
     }
 }
+

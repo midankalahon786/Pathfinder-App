@@ -41,4 +41,5 @@ sealed class Screen(val route: String, val label: String, val icon: IconSource) 
     object AccountPrivacy : Screen("account_privacy", "Account Privacy", IconSource.Vector(Icons.Outlined.Lock))
     object Faq : Screen("faq", "FAQs", IconSource.Resource(R.drawable.outline_headphones_24))
     object ContactUs : Screen("contact_us", "Contact Us", IconSource.Vector(Icons.Outlined.Email))
+    object Recommendations : Screen("recommendations", "Recommendations", IconSource.Resource(R.drawable.baseline_workspace_premium_24))
 }

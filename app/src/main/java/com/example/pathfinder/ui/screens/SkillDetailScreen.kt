@@ -7,8 +7,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,32 +17,36 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.pathfinder.model.Course
-import com.example.pathfinder.model.Role
 import com.example.pathfinder.R
+import com.example.pathfinder.ui.screens.fake.FakeSkillDetailViewModel
 import com.example.pathfinder.ui.theme.TealHeader
+import com.example.pathfinder.viewmodel.ISkillDetailViewModel
+import com.example.pathfinder.viewmodel.SkillDetailState
+import com.example.pathfinder.viewmodel.SkillDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SkillDetailScreen(navController: NavController, skillName: String) {
-    val skillName = "Jetpack Compose"
-    val courses = listOf(
-        Course("Jetpack Compose for Android Developers", "Udacity"),
-        Course("Android Basics with Compose", "Google"),
-        Course("Complete Jetpack Compose Masterclass", "Udemy")
-    )
-    val relatedRoles = listOf(
-        Role("Android Developer"),
-        Role("Mobile Engineer"),
-        Role("Kotlin Developer")
-    )
+fun SkillDetailScreen(
+    navController: NavController,
+    skillName: String,
+    viewModel: ISkillDetailViewModel
+) {
+    // Collect the UI state from the ViewModel
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Fetch the skill details when the screen is first composed or skillName changes
+    LaunchedEffect(key1 = skillName) {
+        viewModel.fetchSkillDetails(skillName)
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(skillName) },
+                title = { Text(skillName) }, // Use the passed-in skillName for an immediate title
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
@@ -53,98 +58,115 @@ fun SkillDetailScreen(navController: NavController, skillName: String) {
             )
         }
     ) { paddingValues ->
-        LazyColumn(
+        // Handle the different UI states
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header Section
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = skillName,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Jetpack Compose is Android’s recommended modern toolkit for building native UI. It simplifies and accelerates UI development on Android with less code, powerful tools, and intuitive Kotlin APIs.",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = { /* TODO: Handle add to skills */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = TealHeader,
-                        contentColor = Color.White
-                    )
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_bookmark_border_24),
-                        contentDescription = null,
-                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                    )
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text("Add to My Skills")
+            when (val state = uiState) {
+                is SkillDetailState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
-                )
-            }
+                is SkillDetailState.Error -> {
+                    Text(
+                        text = state.message,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+                is SkillDetailState.Success -> {
+                    val skill = state.skill
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Header Section
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = skill.name,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = skill.description,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = { /* TODO: Handle add to my skills */ },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = TealHeader,
+                                    contentColor = Color.White
+                                )
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.baseline_bookmark_border_24),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                Text("Add to My Skills")
+                            }
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                        }
 
-            // Related Roles Section
-            item {
-                Text(
-                    "Related Roles",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            items(relatedRoles) { role ->
-                Text(
-                    text = "• ${role.title}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
-                )
-            }
+                        // Related Roles Section
+                        if (skill.relatedRoles.isNotEmpty()) {
+                            item {
+                                Text(
+                                    "Related Roles",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                            items(skill.relatedRoles) { roleTitle ->
+                                Text(
+                                    text = "• $roleTitle",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.padding(start = 8.dp, bottom = 4.dp)
+                                )
+                            }
+                            item {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                            }
+                        }
 
-            item {
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
-                )
-            }
+                        // Courses Section
+                        if (skill.courses.isNotEmpty()) {
+                            item {
+                                Text(
+                                    "Courses to Learn",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+                            items(skill.courses) { course ->
+                                CourseCard(course = course)
+                            }
+                        }
 
-
-            // Courses Section
-            item {
-                Text(
-                    "Courses to Learn",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-            items(courses) { course ->
-                CourseCard(course = course)
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                }
             }
         }
     }
 }
 
+// Update CourseCard to take the Pair from the ViewModel's UI model
 @Composable
-fun CourseCard(course: Course) {
+fun CourseCard(course: Pair<String, String>) {
+    val (title, provider) = course
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
@@ -165,12 +187,12 @@ fun CourseCard(course: Course) {
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
-                    text = course.title,
+                    text = title,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = course.platform,
+                    text = provider,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -183,9 +205,11 @@ fun CourseCard(course: Course) {
 @Preview(showBackground = true)
 @Composable
 fun SkillDetailScreenPreview() {
-    val fakeNavController: NavController = rememberNavController()
-    val skillName = "Jetpack Compose"
     MaterialTheme {
-        SkillDetailScreen(fakeNavController,skillName)
+        SkillDetailScreen(
+            navController = rememberNavController(),
+            skillName = "Jetpack Compose",
+            viewModel = FakeSkillDetailViewModel()
+        )
     }
 }

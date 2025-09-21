@@ -25,13 +25,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
+import com.example.pathfinder.ui.IThemeViewModel
+import com.example.pathfinder.ui.ThemeViewModel
 import com.example.pathfinder.ui.screens.fake.FakeAuthViewModel
+import com.example.pathfinder.ui.screens.fake.FakeThemeViewModel
 import com.example.pathfinder.ui.screens.fake.FakeUserViewModel
 import com.example.pathfinder.ui.theme.DarkGrayText
 import com.example.pathfinder.ui.theme.DividerColor
 import com.example.pathfinder.ui.theme.GraySwitchUser
 import com.example.pathfinder.ui.theme.LightPurpleBackground
 import com.example.pathfinder.ui.theme.MediumGrayText
+import com.example.pathfinder.ui.theme.PathfinderAITheme
 import com.example.pathfinder.ui.theme.RedLogOut
 import com.example.pathfinder.viewmodel.IAuthViewModel
 import com.example.pathfinder.viewmodel.IUserViewModel
@@ -42,9 +46,11 @@ import com.example.pathfinder.viewmodel.UserState
 fun SettingsScreen(
     navController: NavController,
     authViewModel: IAuthViewModel,
-    userViewModel: IUserViewModel
+    userViewModel: IUserViewModel,
+    themeViewModel: IThemeViewModel
 ) {
     val userState by userViewModel.userState.collectAsStateWithLifecycle()
+    val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         userViewModel.fetchCurrentUser()
@@ -159,6 +165,37 @@ fun SettingsScreen(
             }
 
         )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(2.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp, horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.baseline_dark_mode_24), // Add a dark mode icon to your drawables
+                    contentDescription = "Dark Mode",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = "Dark Mode",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+                Switch(
+                    checked = isDarkTheme,
+                    onCheckedChange = { themeViewModel.setTheme(it) }
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -243,8 +280,13 @@ fun SettingsItem(icon: Painter, text: String, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewAccountSettingsScreen() {
-    MaterialTheme {
+    PathfinderAITheme {
         val fakeNavController = rememberNavController()
-        SettingsScreen(fakeNavController, authViewModel = FakeAuthViewModel(), userViewModel = FakeUserViewModel())
+        SettingsScreen(
+            navController = fakeNavController,
+            authViewModel = FakeAuthViewModel(),
+            userViewModel = FakeUserViewModel(),
+            themeViewModel = FakeThemeViewModel()
+        )
     }
 }
