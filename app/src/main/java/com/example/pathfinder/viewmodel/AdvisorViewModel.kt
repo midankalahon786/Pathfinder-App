@@ -2,6 +2,7 @@
 package com.example.pathfinder.viewmodel
 
 import android.app.Application
+import android.util.Log // Import the Log class
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -9,15 +10,15 @@ import com.example.pathfinder.model.ChatMessage
 import com.example.pathfinder.network.ChatHistoryRepository
 import com.example.pathfinder.network.RetrofitClient
 import com.example.pathfinder.network.data.ChatRequest
-import com.example.pathfinder.network.data.Content
-import com.example.pathfinder.network.data.Part
+import com.google.gson.Gson // Import Gson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class AdvisorViewModel(
-    private val repository: ChatHistoryRepository, private val userId: String) : ViewModel() {
+    private val repository: ChatHistoryRepository, private val userId: String
+) : ViewModel() {
 
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages = _messages.asStateFlow()
@@ -36,9 +37,6 @@ class AdvisorViewModel(
         }
     }
 
-    // History for the Gemini API
-    private val conversationHistory = mutableListOf<Content>()
-
     fun sendMessage(text: String) {
         if (text.isBlank() || _isLoading.value) return
 
@@ -52,15 +50,21 @@ class AdvisorViewModel(
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                // FIX: The server doesn't need history, it fetches it itself.
-                // But we do need to send the userId.
-                val request = ChatRequest(userId = userId, prompt = text) // ADDED userId
+                // Create the request object
+                val request = ChatRequest(userId = userId, prompt = text)
 
-                // Check if RetrofitClient.instance.sendMessage's request body is correct
-                // It needs to accept a ChatRequest with a userId field
-                // Make sure your Retrofit interface for ChatRequest has the userId field.
+                // *** ADDED LOGGING ***
+                // Use Gson to convert the request object to a JSON string
+                val gson = Gson()
+                val jsonRequest = gson.toJson(request)
+                Log.d("AdvisorViewModel", "Sending JSON: $jsonRequest")
+
+                // Make the network call
                 val response = RetrofitClient.instance.sendMessage(request)
                 val aiMessage = ChatMessage(message = response.response, isFromUser = false)
+
+                // *** ADDED LOGGING ***
+                Log.d("AdvisorViewModel", "Received response: ${response.response}")
 
                 // Add AI response and save again
                 val finalMessages = _messages.value + aiMessage
@@ -68,6 +72,9 @@ class AdvisorViewModel(
                 repository.saveChatHistory(finalMessages)
 
             } catch (e: Exception) {
+                // *** ADDED LOGGING ***
+                Log.e("AdvisorViewModel", "Error sending message", e)
+
                 val errorMessage = ChatMessage("Sorry, something went wrong: ${e.message}", false)
                 val errorMessages = _messages.value + errorMessage
                 _messages.value = errorMessages
@@ -86,7 +93,7 @@ class AdvisorViewModel(
     }
 }
 
-// In viewmodel/AdvisorViewModel.kt
+// Factory remains the same
 class AdvisorViewModelFactory(private val application: Application, private val userId: String) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AdvisorViewModel::class.java)) {

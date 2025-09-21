@@ -30,6 +30,7 @@ import com.example.pathfinder.viewmodel.AdvisorViewModel
 import com.example.pathfinder.viewmodel.AdvisorViewModelFactory
 import com.example.pathfinder.viewmodel.AuthState
 import com.example.pathfinder.viewmodel.AuthViewModel
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.launch
 
 @Composable
@@ -37,23 +38,17 @@ fun AdvisorScreen(
     onNavigateUp: () -> Unit
 ) {
     val context = LocalContext.current.applicationContext
-
-    // Get an instance of the AuthViewModel
     val authViewModel: AuthViewModel = viewModel()
     val authState by authViewModel.authState.collectAsState()
 
-    // Conditionally display content based on authentication state
     when (val state = authState) {
         is AuthState.Success -> {
             val userId = state.data.userId
-
-            // Create and remember the ViewModel, passing the userId
             val advisorViewModel: AdvisorViewModel = viewModel(
                 factory = remember {
                     AdvisorViewModelFactory(context as Application, userId = userId)
                 }
             )
-
             val messages by advisorViewModel.messages.collectAsState()
             val isLoading by advisorViewModel.isLoading.collectAsState()
 
@@ -66,21 +61,17 @@ fun AdvisorScreen(
             )
         }
         AuthState.Loading -> {
-            // Show a loading indicator while fetching auth state
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         }
         else -> {
-            // If not logged in, show an error or navigate back
-            // In a real app, you would navigate to the login screen
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Please log in to use the chat.")
             }
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,35 +98,23 @@ fun AdvisorScreenContent(
                 title = { Text("Career Advisor") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
                 },
                 actions = {
-                    IconButton(
-                        onClick = onClearChat
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Clear Chat"
-                        )
+                    IconButton(onClick = onClearChat) {
+                        Icon(Icons.Default.Delete, "Clear Chat")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         },
-        bottomBar = {
-            MessageInput(
-                onSendMessage = onSendMessage,
-                isLoading = isLoading
-            )
-        }
+        bottomBar = { MessageInput(onSendMessage = onSendMessage, isLoading = isLoading) }
     ) { paddingValues ->
         LazyColumn(
             state = listState,
@@ -163,17 +142,18 @@ fun MessageBubble(message: ChatMessage) {
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = alignment
     ) {
-        Text(
-            text = message.message,
+        MarkdownText(
+            markdown = message.message,
+            color = textColor, // You can set the color directly
             modifier = Modifier
+                .widthIn(max = 300.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(backgroundColor)
                 .padding(12.dp)
-                .widthIn(max = 300.dp),
-            color = textColor
         )
     }
 }
+
 
 @Composable
 fun MessageInput(onSendMessage: (String) -> Unit, isLoading: Boolean) {
@@ -194,9 +174,11 @@ fun MessageInput(onSendMessage: (String) -> Unit, isLoading: Boolean) {
                 placeholder = { Text("Ask about your career...") },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                 keyboardActions = KeyboardActions {
-                    onSendMessage(text)
-                    text = ""
-                    keyboardController?.hide()
+                    if (text.isNotBlank()) {
+                        onSendMessage(text)
+                        text = ""
+                        keyboardController?.hide()
+                    }
                 },
                 enabled = !isLoading
             )
@@ -230,9 +212,9 @@ fun MessageInput(onSendMessage: (String) -> Unit, isLoading: Boolean) {
 fun AdvisorScreenPreview() {
     PathfinderAITheme {
         val previewMessages = listOf(
-            ChatMessage("Hello! How can I help you today?", isFromUser = false),
-            ChatMessage("I want to know about a career in software engineering.", isFromUser = true),
-            ChatMessage("Of course! Software engineering is a vast field...", isFromUser = false)
+            ChatMessage("Hello! How can I help you today?", false),
+            ChatMessage("I want to know about a career in **software engineering**.", true),
+            ChatMessage("Of course! Software engineering is a vast field...", false)
         )
         AdvisorScreenContent(
             messages = previewMessages,
