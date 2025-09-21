@@ -26,7 +26,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
 import com.example.pathfinder.ui.IThemeViewModel
-import com.example.pathfinder.ui.ThemeViewModel
 import com.example.pathfinder.ui.screens.fake.FakeAuthViewModel
 import com.example.pathfinder.ui.screens.fake.FakeThemeViewModel
 import com.example.pathfinder.ui.screens.fake.FakeUserViewModel
