@@ -15,7 +15,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,12 +27,7 @@ import com.example.pathfinder.R
 import com.example.pathfinder.model.Skill
 import com.example.pathfinder.model.UserSkillUI
 import com.example.pathfinder.ui.screens.fake.FakeOnboardingViewModel
-import com.example.pathfinder.ui.theme.DarkBlueText
-import com.example.pathfinder.ui.theme.DividerColor
-import com.example.pathfinder.ui.theme.LightGrayBackground
-import com.example.pathfinder.ui.theme.MediumGrayText
-import com.example.pathfinder.ui.theme.TealHeader
-import com.example.pathfinder.ui.theme.White
+import com.example.pathfinder.ui.theme.PathfinderAITheme // Import your theme
 import com.example.pathfinder.viewmodel.IOnboardingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,35 +48,25 @@ fun SkillsExpertiseScreen(
         viewModel.fetchAllSkills()
     }
 
-
     val completedSteps = listOf(
         "Basic Info" to Screen.BasicInfo.route,
         "Skills & Expertise" to Screen.SkillsExpertise.route,
         "Career Goals" to Screen.CareerGoals.route
     )
 
-    val skillsList = remember {
-        // Updated to include the isSelected state
-        mutableStateListOf(
-            Skill("", "Proficiency", isSelected = false),
-            Skill("", "Proficiency", isSelected = false),
-            Skill("", "Proficiency", isSelected = false)
-        )
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Skills & Expertise", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = { Text("Skills & Expertise", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Show Steps", tint = White)
+                            Icon(Icons.Default.MoreVert, contentDescription = "Show Steps")
                         }
                         DropdownMenu(
                             expanded = menuExpanded,
@@ -100,10 +84,17 @@ fun SkillsExpertiseScreen(
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = TealHeader)
+                // THEME: Use theme colors for the app bar
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
         },
-        containerColor = LightGrayBackground
+        // THEME: Use theme background color
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -115,10 +106,10 @@ fun SkillsExpertiseScreen(
         ) {
             Text(
                 text = "Your Skills & Abilities",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DarkBlueText
-                ),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                // THEME: Use onBackground color for text on the main screen
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
 
@@ -126,7 +117,8 @@ fun SkillsExpertiseScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                // THEME: Use surface color for cards
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(2.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -144,12 +136,13 @@ fun SkillsExpertiseScreen(
                         placeholder = { Text("Search for skills", style = MaterialTheme.typography.bodySmall) },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
                         shape = RoundedCornerShape(8.dp),
+                        // THEME: Use theme colors for text field
                         colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            disabledContainerColor = Color.White,
-                            focusedIndicatorColor = DividerColor,
-                            unfocusedIndicatorColor = DividerColor
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                            unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
                         )
                     )
                 }
@@ -161,7 +154,7 @@ fun SkillsExpertiseScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(2.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -183,7 +176,8 @@ fun SkillsExpertiseScreen(
                                 expandedStateMap = expandedStateMap.toMutableMap().apply {
                                     this[skill.userSkillId] = isExpanded
                                 }
-                            }
+                            },
+                            onRemove = { viewModel.removeUserSkill(skill.userSkillId) } // <--- Add this line
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
@@ -192,9 +186,11 @@ fun SkillsExpertiseScreen(
                         onClick = { viewModel.onAddNewSkillRow() },
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
-                            .border(1.dp, DividerColor, CircleShape)
+                            // THEME: Use theme outline color for border
+                            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Skill", tint = MediumGrayText)
+                        // THEME: Use theme color for icon tint
+                        Icon(Icons.Default.Add, contentDescription = "Add Skill", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -222,10 +218,11 @@ fun SkillsExpertiseScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SkillProficiencyRow(
-    skill: UserSkillUI, // Use your UI model
+    skill: UserSkillUI,
     onSkillChange: (UserSkillUI) -> Unit,
     isExpanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit
+    onExpandedChange: (Boolean) -> Unit,
+    onRemove: () -> Unit // <--- Add this new parameter
 ) {
     val proficiencyOptions = listOf("Beginner", "Intermediate", "Advanced", "Certified")
 
@@ -234,23 +231,19 @@ fun SkillProficiencyRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-
         OutlinedTextField(
             value = skill.name,
             onValueChange = { onSkillChange(skill.copy(name = it)) },
             modifier = Modifier.weight(1f),
-            placeholder = {
-                Text(
-                    text = "Enter Skill",
-                style = MaterialTheme.typography.bodySmall) },
+            placeholder = { Text("Enter Skill", style = MaterialTheme.typography.bodySmall) },
             shape = RoundedCornerShape(8.dp),
             textStyle = MaterialTheme.typography.bodySmall
         )
 
         ExposedDropdownMenuBox(
-            expanded = isExpanded, // Use the passed-in state
-            onExpandedChange = onExpandedChange, // Use the passed-in callback
-            modifier = Modifier.weight(0.7f)
+            expanded = isExpanded,
+            onExpandedChange = onExpandedChange,
+            modifier = Modifier.weight(0.8f)
         ) {
             OutlinedTextField(
                 readOnly = true,
@@ -263,22 +256,31 @@ fun SkillProficiencyRow(
             )
             ExposedDropdownMenu(
                 expanded = isExpanded,
-                onDismissRequest = { onExpandedChange(false) } // Use the callback
+                onDismissRequest = { onExpandedChange(false) }
             ) {
                 proficiencyOptions.forEach { option ->
                     DropdownMenuItem(
                         text = { Text(option) },
                         onClick = {
                             onSkillChange(skill.copy(level = option))
-                            onExpandedChange(false) // Use the callback
+                            onExpandedChange(false)
                         }
                     )
                 }
             }
         }
+        // <--- Add the IconButton here
+        IconButton(onClick = onRemove) {
+            Icon(
+                Icons.Default.Delete,
+                contentDescription = "Remove Skill",
+                tint = MaterialTheme.colorScheme.error // Use error color for delete actions
+            )
+        }
     }
 }
 
+// THEME: Corrected NavigationButton to be theme-aware
 @Composable
 fun NavigationButton(
     text: String,
@@ -291,8 +293,9 @@ fun NavigationButton(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, DividerColor),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        // THEME: Use theme colors for border and container
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Row(
@@ -300,25 +303,29 @@ fun NavigationButton(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (leadingIcon != null) {
-                Icon(leadingIcon, contentDescription = null, tint = MediumGrayText)
+                // THEME: Use theme color for icons
+                Icon(leadingIcon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.width(8.dp))
             }
             Text(
                 text,
                 modifier = Modifier.weight(1f),
-                color = MediumGrayText,
+                // THEME: Use theme color for text
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold
             )
             if (trailingIcon != null) {
-                Icon(trailingIcon, contentDescription = null, tint = MediumGrayText)
+                Icon(trailingIcon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun PreviewSkillsExpertiseScreen() {
-    SkillsExpertiseScreen(navController = rememberNavController(), viewModel = FakeOnboardingViewModel())
+    // THEME: Wrap your preview in your app's theme
+    PathfinderAITheme {
+        SkillsExpertiseScreen(navController = rememberNavController(), viewModel = FakeOnboardingViewModel())
+    }
 }

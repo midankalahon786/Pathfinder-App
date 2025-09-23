@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -25,44 +24,44 @@ import com.example.pathfinder.R
 import com.example.pathfinder.network.data.TokenManager
 import com.example.pathfinder.ui.screens.fake.FakeAuthViewModel
 import com.example.pathfinder.ui.theme.PathfinderAITheme
-import com.example.pathfinder.ui.theme.TealHeader
 import com.example.pathfinder.viewmodel.AuthState
 import com.example.pathfinder.viewmodel.IAuthViewModel
 
 @Composable
 fun LoginScreen(
     navController: NavController,
-    authViewModel: IAuthViewModel, // Pass in the ViewModel
+    authViewModel: IAuthViewModel,
     onLoginSuccess: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // --- Additions for ViewModel Integration ---
     val context = LocalContext.current
     val tokenManager = remember { TokenManager(context) }
     val authState by authViewModel.authState.collectAsStateWithLifecycle()
 
-    // Handle side effects like navigation or showing toasts
     LaunchedEffect(key1 = authState) {
         when (val state = authState) {
             is AuthState.Success -> {
                 tokenManager.saveToken(state.data.token)
                 Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT).show()
                 onLoginSuccess()
-                authViewModel.resetState() // Reset state after handling
+                authViewModel.resetState()
             }
             is AuthState.Error -> {
                 Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
-                authViewModel.resetState() // Reset state after showing error
+                authViewModel.resetState()
             }
-            else -> Unit // Do nothing for Idle or Loading
+            else -> Unit
         }
     }
-    // --- End of Additions ---
 
-    Surface(modifier = Modifier.fillMaxSize()) {
+    // THEME: Use theme's background color for the main surface
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -98,7 +97,7 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     singleLine = true,
-                    enabled = authState != AuthState.Loading // Disable field when loading
+                    enabled = authState != AuthState.Loading
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
@@ -109,19 +108,14 @@ fun LoginScreen(
                     singleLine = true,
                     enabled = authState != AuthState.Loading,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-
-                    // 3. Add the icon as a trailing icon
                     trailingIcon = {
                         val image = if (passwordVisible)
                             painterResource(R.drawable.baseline_visibility_24)
                         else painterResource(R.drawable.baseline_visibility_off_24)
 
-                        // Localized description for accessibility services
                         val description = if (passwordVisible) "Hide password" else "Show password"
 
-                        // Toggle the password visibility when the icon is clicked
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(painter = image, contentDescription = description)
                         }
@@ -129,13 +123,11 @@ fun LoginScreen(
                 )
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // --- Logic for Button and Loading Indicator ---
                 if (authState == AuthState.Loading) {
                     CircularProgressIndicator()
                 } else {
                     Button(
                         onClick = {
-                            // Basic validation
                             if (email.isNotBlank() && password.isNotBlank()) {
                                 authViewModel.login(email, password)
                             } else {
@@ -144,23 +136,25 @@ fun LoginScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                         contentPadding = PaddingValues(16.dp),
+                        // THEME: Use theme's primary color for the button
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = TealHeader,
-                            contentColor = Color.White
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
+                        // The text color will automatically be `onPrimary`
                         Text(text = "Login")
                     }
                 }
-                // --- End of Logic ---
             }
 
-            TextButton(onClick = { navController.navigate("signup") }) { // Assuming "signup" is your route
-                Text("Don't have an account? Sign Up", color = TealHeader)
+            TextButton(onClick = { navController.navigate("signup") }) {
+                // THEME: Use theme's primary color for the link text
+                Text("Don't have an account? Sign Up", color = MaterialTheme.colorScheme.primary)
             }
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {

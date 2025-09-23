@@ -11,41 +11,62 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Green
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-
-// --- NEW: Define a Dark Color Scheme ---
-private val DarkColorScheme = darkColorScheme(
-    primary = DarkPrimary,
-    background = DarkBackground,
-    surface = DarkSurface,
-    onPrimary = Color.Black,
-    onBackground = DarkOnSurface,
-    onSurface = DarkOnSurface,
-    onSurfaceVariant = DarkOnSurfaceVariant,
-    error = RedLogOut
-)
-
-// --- Use your existing light colors for the Light Color Scheme ---
+// --- Light Color Scheme (Expanded) ---
 private val LightColorScheme = lightColorScheme(
     primary = TealHeader,
+    onPrimary = Color.White,
     secondary = TealButton,
+    onSecondary = Color.White,
+    tertiary = Green,
+    onTertiary = Color.White,
     background = LightPurpleBackground,
-    surface = White,
-    onPrimary = White,
-    onSecondary = White,
     onBackground = DarkGrayText,
+    surface = Color.White,
     onSurface = DarkGrayText,
+    surfaceVariant = VeryLightGray,
     onSurfaceVariant = MediumGrayText,
-    error = RedLogOut
+    error = RedLogOut,
+    onError = Color.White,
+    errorContainer = LightRed,
+    onErrorContainer = DarkRed,
+    secondaryContainer = GraySwitchUser,
+    onSecondaryContainer = DarkGrayText, // Changed from Color.White
+
+    outline = DividerColor
+)
+
+// --- Dark Color Scheme (Corrected & Expanded) ---
+private val DarkColorScheme = darkColorScheme(
+    primary = DarkPrimary,
+    onPrimary = Color.White,
+    secondary = DarkPrimary,
+    onSecondary = Color.White,
+    tertiary = Green,
+    onTertiary = Color.Black,
+    background = DarkBackground,
+    onBackground = DarkOnSurface,
+    surface = DarkSurface,
+    onSurface = DarkOnSurface,
+    surfaceVariant = DarkerGray, // Now defined
+    onSurfaceVariant = DarkOnSurfaceVariant,
+    error = RedLogOut,
+    onError = Color.White,
+    errorContainer = DarkRed, // Now defined
+    onErrorContainer = LightRed, // Now defined
+    secondaryContainer = DarkerGray, // Now defined
+    onSecondaryContainer = DarkOnSurfaceVariant,
+    outline = DarkGrayText
 )
 
 @Composable
 fun PathfinderAITheme(
-    darkTheme: Boolean = isSystemInDarkTheme(), // Automatically detect system theme
-    dynamicColor: Boolean = false, // Dynamic color is disabled for consistent branding
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -53,14 +74,14 @@ fun PathfinderAITheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> DarkColorScheme // Use our custom dark scheme
-        else -> LightColorScheme // Use our custom light scheme
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
     }
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
+            window.statusBarColor = colorScheme.surface.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }

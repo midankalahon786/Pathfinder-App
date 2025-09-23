@@ -2,7 +2,6 @@ package com.example.pathfinder.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -27,12 +25,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
 import com.example.pathfinder.network.data.TokenManager
 import com.example.pathfinder.ui.screens.fake.FakeAuthViewModel
-import com.example.pathfinder.ui.theme.LightPurpleBackground
 import com.example.pathfinder.ui.theme.PathfinderAITheme
 import com.example.pathfinder.viewmodel.AuthState
 import com.example.pathfinder.viewmodel.IAuthViewModel
-
-val Teal500 = Color(0xFF009688) // Example color
 
 @Composable
 fun SignUpScreen(
@@ -68,26 +63,23 @@ fun SignUpScreen(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(LightPurpleBackground),
-        contentAlignment = Alignment.Center
+    // THEME: Use Surface with theme background color
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // ... (Image and Text views remain the same)
             Image(
                 painter = painterResource(id = R.drawable.pathfinderailogo),
                 contentDescription = "Pathfinder AI Logo",
                 modifier = Modifier.size(120.dp)
             )
-            // ...
 
             Spacer(modifier = Modifier.height(48.dp))
 
@@ -99,7 +91,7 @@ fun SignUpScreen(
                 label = { Text("Name") },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = areFieldsEnabled,
-                // ... (other modifiers)
+                singleLine = true
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -109,7 +101,8 @@ fun SignUpScreen(
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = areFieldsEnabled,
-                // ... (other modifiers)
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -152,7 +145,8 @@ fun SignUpScreen(
 
             if (confirmPassword.isNotEmpty()) {
                 val (message, color) = if (password == confirmPassword) {
-                    "Passwords match" to Color(0xFF006400) // Dark Green
+                    // THEME: Use a theme accent color (tertiary) for success messages
+                    "Passwords match" to MaterialTheme.colorScheme.tertiary
                 } else {
                     "Passwords do not match" to MaterialTheme.colorScheme.error
                 }
@@ -173,7 +167,6 @@ fun SignUpScreen(
             } else {
                 Button(
                     onClick = {
-                        // Client-side validation
                         if (name.isBlank() || email.isBlank() || password.isBlank()) {
                             Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
                             return@Button
@@ -188,7 +181,8 @@ fun SignUpScreen(
                         .fillMaxWidth()
                         .height(50.dp),
                     shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Teal500)
+                    // THEME: Use primary theme color for the main button
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text("Sign Up", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 }
@@ -208,7 +202,8 @@ fun SignUpScreen(
                 Text(
                     text = "Login",
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = Teal500,
+                    // THEME: Use primary theme color for links
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.clickable { if (areFieldsEnabled) navController.popBackStack() }
                 )
             }

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -23,7 +22,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,14 +30,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
-import com.example.pathfinder.ui.theme.DarkGrayText
-import com.example.pathfinder.ui.theme.LightPurpleBackground
+import com.example.pathfinder.ui.theme.PathfinderAITheme // Import your theme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpSupportScreen(navController: NavController) {
     Scaffold(
-        containerColor = LightPurpleBackground,
+        // THEME: Use theme background color
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Help & Support", fontWeight = FontWeight.Bold) },
@@ -48,8 +46,9 @@ fun HelpSupportScreen(navController: NavController) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
+                // THEME: Use theme background for a seamless look
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         }
@@ -65,13 +64,14 @@ fun HelpSupportScreen(navController: NavController) {
                 text = "Contact Us",
                 onClick = { /* TODO: Navigate to Contact screen */ }
             )
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+            // THEME: Use a theme-aware color for the divider
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             HelpItem(
                 icon = painterResource(R.drawable.baseline_report_24),
                 text = "Report a Problem",
                 onClick = { /* TODO: Navigate to Report screen */ }
             )
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             HelpItem(
                 icon = painterResource(R.drawable.baseline_description_24),
                 text = "Terms of Service",
@@ -90,17 +90,25 @@ private fun HelpItem(icon: Painter, text: String, onClick: () -> Unit) {
             .padding(vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(painter = icon, contentDescription = null, tint = DarkGrayText)
+        // THEME: Use onSurfaceVariant for icons
+        Icon(painter = icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(modifier = Modifier.width(16.dp))
-        Text(text, style = MaterialTheme.typography.bodyLarge, color = DarkGrayText, modifier = Modifier.weight(1f))
-        Icon(painter = painterResource(R.drawable.outline_chevron_right_24), contentDescription = null)
+        // THEME: Use onSurface for primary text
+        Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+        // THEME: Use onSurfaceVariant for the chevron icon
+        Icon(
+            painter = painterResource(R.drawable.outline_chevron_right_24),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun HelpSupportScreenPreview() {
-    MaterialTheme {
+    // It's a good practice to wrap previews in your app's theme
+    PathfinderAITheme {
         HelpSupportScreen(navController = rememberNavController())
     }
 }

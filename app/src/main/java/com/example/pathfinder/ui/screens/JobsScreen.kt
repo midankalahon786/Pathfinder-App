@@ -12,13 +12,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pathfinder.model.Job
-import com.example.pathfinder.ui.theme.*
 
 // This is the main entry point you would call from your NavHost
 @Composable
@@ -39,12 +37,10 @@ fun JobsScreen() {
         }
     }
 
-    // Now, JobsScreen just calls the content composable
     JobsScreenContent(jobs = jobs)
 }
 
 
-// This composable contains the actual UI, without the Scaffold
 @Composable
 fun JobsScreenContent(
     jobs: List<Job>,
@@ -55,7 +51,8 @@ fun JobsScreenContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(LightPurpleBackground)
+            // 1. Use theme background color
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -68,12 +65,15 @@ fun JobsScreenContent(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             shape = RoundedCornerShape(8.dp),
+            // 2. Use theme-aware colors for TextField.
+            //    It's often best to remove the `colors` parameter entirely
+            //    to use the default Material 3 styled TextField.
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                disabledContainerColor = Color.White,
-                focusedIndicatorColor = TealHeader,
-                unfocusedIndicatorColor = DividerColor
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                disabledContainerColor = MaterialTheme.colorScheme.surface,
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
             )
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -86,17 +86,17 @@ fun JobsScreenContent(
 
         if (filteredJobs.isEmpty() && searchQuery.isNotBlank()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No jobs found matching your search.", color = MediumGrayText)
+                // 3. Use theme color for placeholder text
+                Text("No jobs found matching your search.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else if (jobs.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Loading jobs...", color = MediumGrayText)
+                Text("Loading jobs...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(filteredJobs) { job ->
                     JobCard(job = job) {
-                        // In a real app, this would trigger a ViewModel function
                         println("Apply clicked for ${job.title}")
                     }
                 }
@@ -111,25 +111,28 @@ fun JobCard(job: Job, onApplyClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        // 4. Use theme surface color for Card background
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = job.title,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = DarkBlueText
+                // 5. Use theme color for primary text on a surface
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = job.company,
                 style = MaterialTheme.typography.titleMedium,
-                color = DarkGrayText
+                // 6. Use theme color for secondary text
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = job.location,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MediumGrayText
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(
@@ -141,30 +144,30 @@ fun JobCard(job: Job, onApplyClick: () -> Unit) {
                     Text(
                         text = "${job.type} • ${job.experienceLevel}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MediumGrayText
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = job.salary,
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Green,
+                        // 7. Use a semantic accent color like 'tertiary'
+                        color = MaterialTheme.colorScheme.tertiary,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
                 Button(
                     onClick = onApplyClick,
                     shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = TealHeader)
+                    // 8. Use theme's primary color for the button
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Apply", color = Color.White, fontSize = 14.sp)
+                    // Text color will automatically be `onPrimary`
+                    Text("Apply", fontSize = 14.sp)
                 }
             }
         }
     }
 }
 
-// NOTE: JobFilterBottomSheet and FilterSection would be used with a ModalBottomSheet
-// which is typically part of a Scaffold. You would call them from your main screen
-// that contains the Scaffold. They are included here for completeness.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -172,10 +175,10 @@ fun JobFilterBottomSheet(
     onApplyFilters: (jobType: String?, expLevel: String?, salaryRange: String?) -> Unit,
     onClearFilters: () -> Unit
 ) {
+    // State variables remain the same
     var selectedJobType by remember { mutableStateOf<String?>(null) }
     var selectedExperienceLevel by remember { mutableStateOf<String?>(null) }
     var selectedSalaryRange by remember { mutableStateOf<String?>(null) }
-
     val jobTypes = listOf("Full-time", "Part-time", "Contract", "Internship", "Temporary")
     val experienceLevels = listOf("Entry-level", "Mid-level", "Senior", "Director", "Executive")
     val salaryRanges = listOf(
@@ -185,6 +188,7 @@ fun JobFilterBottomSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            // The bottom sheet itself provides the background color, so none needed here.
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -192,7 +196,7 @@ fun JobFilterBottomSheet(
         Text(
             text = "Filter Jobs",
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-            color = DarkBlueText
+            color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(8.dp))
         FilterSection(title = "Job Type", options = jobTypes, selectedOption = selectedJobType) {
@@ -217,10 +221,11 @@ fun JobFilterBottomSheet(
                     onClearFilters()
                 },
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MediumGrayText),
-                border = BorderStroke(1.dp, DividerColor),
+                // 9. Use theme outline color for border
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 shape = RoundedCornerShape(8.dp)
             ) {
+                // Text color defaults correctly
                 Text("Clear Filters")
             }
             Button(
@@ -228,10 +233,10 @@ fun JobFilterBottomSheet(
                     onApplyFilters(selectedJobType, selectedExperienceLevel, selectedSalaryRange)
                 },
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(containerColor = TealHeader),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("Apply Filters", color = Color.White)
+                Text("Apply Filters")
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -250,7 +255,7 @@ fun FilterSection(
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = DarkBlueText
+            color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(8.dp))
         FlowRow(
@@ -264,15 +269,16 @@ fun FilterSection(
                     selected = isSelected,
                     onClick = { onOptionSelected(if (isSelected) null else option) },
                     label = { Text(option) },
+                    // 10. Use semantic theme colors for FilterChip states
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = TealHeader.copy(alpha = 0.2f),
-                        selectedLabelColor = DarkBlueText,
-                        containerColor = Color.White,
-                        labelColor = MediumGrayText
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
                     ),
                     border = FilterChipDefaults.filterChipBorder(
-                        selectedBorderColor = TealHeader,
-                        borderColor = DividerColor,
+                        borderColor = MaterialTheme.colorScheme.outline,
+                        selectedBorderColor = MaterialTheme.colorScheme.primary,
                         enabled = true,
                         selected = false
                     )

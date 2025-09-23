@@ -2,18 +2,7 @@ package com.example.pathfinder.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -24,29 +13,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -57,13 +28,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
 import com.example.pathfinder.ui.screens.fake.FakeOnboardingViewModel
-import com.example.pathfinder.ui.theme.DarkBlueText
-import com.example.pathfinder.ui.theme.DarkGrayText
-import com.example.pathfinder.ui.theme.DividerColor
-import com.example.pathfinder.ui.theme.LightPurpleBackground
-import com.example.pathfinder.ui.theme.MediumGrayText
-import com.example.pathfinder.ui.theme.TealHeader
-import com.example.pathfinder.ui.theme.White
+import com.example.pathfinder.ui.theme.PathfinderAITheme // Import your theme
 import com.example.pathfinder.viewmodel.IOnboardingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,27 +54,20 @@ fun CareerGoalsScreen(
     }
 
     Scaffold(
-        containerColor = LightPurpleBackground,
+        // THEME: Use theme background color
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Career Goals & Ambitions", color = Color.White) },
+                title = { Text("Career Goals & Ambitions") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = White
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
-                            Icon(
-                                Icons.Default.MoreVert,
-                                contentDescription = "Show Steps",
-                                tint = White
-                            )
+                            Icon(Icons.Default.MoreVert, contentDescription = "Show Steps")
                         }
                         DropdownMenu(
                             expanded = menuExpanded,
@@ -127,8 +85,12 @@ fun CareerGoalsScreen(
                         }
                     }
                 },
+                // THEME: Use theme colors for the app bar
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = TealHeader,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         }
@@ -144,28 +106,31 @@ fun CareerGoalsScreen(
 
             Text(
                 text = "Your Ambitions",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = DarkBlueText
-                ),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                // THEME: Use theme color for text on background
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
             Text(
                 text = "Tell us what you want to achieve.\nThis will help us tailor recommendations to your goals!",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MediumGrayText,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- Desired Roles Card ---
-            Card(shape = RoundedCornerShape(12.dp)) {
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
                 Column(Modifier.padding(16.dp)) {
                     Text(
                         text = "Desired Role or Domains",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
@@ -176,12 +141,13 @@ fun CareerGoalsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         shape = RoundedCornerShape(8.dp),
+                        // THEME: Use theme colors for text field
                         colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = LightPurpleBackground,
-                            disabledContainerColor = Color.White,
-                            focusedIndicatorColor = DividerColor,
-                            unfocusedIndicatorColor = DividerColor
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                            unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
                         )
                     )
                 }
@@ -194,7 +160,7 @@ fun CareerGoalsScreen(
                     LazyColumn(
                         modifier = Modifier
                             .heightIn(max = 200.dp)
-                            .padding(top = 8.dp)
+                            .padding(horizontal = 16.dp)
                     ) {
                         items(filteredPaths) { careerPath ->
                             Text(
@@ -203,9 +169,10 @@ fun CareerGoalsScreen(
                                     .fillMaxWidth()
                                     .clickable {
                                         viewModel.addUserCareerGoal(careerPath.id)
-                                        viewModel.onCareerSearchQueryChange("") // Clear search
+                                        viewModel.onCareerSearchQueryChange("")
                                     }
-                                    .padding(vertical = 8.dp)
+                                    .padding(vertical = 12.dp),
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -214,13 +181,16 @@ fun CareerGoalsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Selected Roles ---
-            Card(shape = RoundedCornerShape(12.dp)) {
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
                 Column(Modifier.padding(16.dp)) {
                     Text(
                         text = "Selected Roles & Domains",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -236,11 +206,11 @@ fun CareerGoalsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Long Term Goals Input ---
             Text(
                 "Long Term Career Goals (brief description)",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
@@ -251,32 +221,28 @@ fun CareerGoalsScreen(
                     .height(150.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    disabledContainerColor = Color.White,
-                    focusedIndicatorColor = DividerColor,
-                    unfocusedIndicatorColor = DividerColor
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    disabledContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
                 )
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- Navigation Buttons ---
             NavigationButton(
                 text = "Skills & Expertise",
                 onClick = { navController.navigateUp() },
                 leadingIcon = painterResource(R.drawable.baseline_arrow_back_24)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             NavigationButton(
                 text = "Past Projects & Final Review",
                 onClick = { navController.navigate(Screen.FinalReview.route) },
                 leadingIcon = painterResource(R.drawable.baseline_workspace_premium_24),
                 trailingIcon = painterResource(R.drawable.outline_chevron_right_24)
             )
-
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -289,7 +255,8 @@ fun RoleChip(text: String, onDelete: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        border = BorderStroke(1.dp, DividerColor)
+        // THEME: Use theme outline color for the border
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -298,13 +265,15 @@ fun RoleChip(text: String, onDelete: () -> Unit) {
             Text(
                 text = text,
                 modifier = Modifier.weight(1f),
-                color = DarkGrayText
+                // THEME: Use onSurface color for the text
+                color = MaterialTheme.colorScheme.onSurface
             )
             IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Delete $text",
-                    tint = MediumGrayText
+                    // THEME: Use onSurfaceVariant for the icon
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -314,7 +283,7 @@ fun RoleChip(text: String, onDelete: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun CareerGoalsScreenPreview() {
-    MaterialTheme {
+    PathfinderAITheme {
         CareerGoalsScreen(
             navController = rememberNavController(),
             viewModel = FakeOnboardingViewModel()

@@ -3,18 +3,36 @@ package com.example.pathfinder.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -29,18 +47,12 @@ import com.example.pathfinder.ui.IThemeViewModel
 import com.example.pathfinder.ui.screens.fake.FakeAuthViewModel
 import com.example.pathfinder.ui.screens.fake.FakeThemeViewModel
 import com.example.pathfinder.ui.screens.fake.FakeUserViewModel
-import com.example.pathfinder.ui.theme.DarkGrayText
-import com.example.pathfinder.ui.theme.DividerColor
-import com.example.pathfinder.ui.theme.GraySwitchUser
-import com.example.pathfinder.ui.theme.LightPurpleBackground
-import com.example.pathfinder.ui.theme.MediumGrayText
 import com.example.pathfinder.ui.theme.PathfinderAITheme
 import com.example.pathfinder.ui.theme.RedLogOut
 import com.example.pathfinder.viewmodel.IAuthViewModel
 import com.example.pathfinder.viewmodel.IUserViewModel
 import com.example.pathfinder.viewmodel.UserState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
@@ -65,7 +77,7 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LightPurpleBackground)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp, vertical = 24.dp)
     ) {
         when (val state = userState) {
@@ -75,7 +87,6 @@ fun SettingsScreen(
                 }
             }
             is UserState.Success -> {
-                // Display the actual user data
                 state.user?.let { user ->
                     Row(
                         modifier = Modifier
@@ -89,111 +100,100 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .size(64.dp)
                                 .clip(CircleShape)
-                                .background(Color.LightGray)
+                                // THEME: Use theme color for placeholder
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = user.name ?: "N/A",
                                 style = MaterialTheme.typography.titleMedium.copy(
-                                    color = DarkGrayText,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.SemiBold
                                 )
                             )
                             Text(
                                 text = "Email: ${user.email}",
-                                style = MaterialTheme.typography.bodySmall.copy(color = MediumGrayText)
+                                // THEME: Use on-surface-variant for secondary text
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                         }
                     }
                 }
             }
             is UserState.Error -> {
-                // Show an error message
-                Text("Error: ${state.message}", color = Color.Red, modifier = Modifier.padding(bottom = 24.dp))
+                // THEME: Use theme error color
+                Text("Error: ${state.message}", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(bottom = 24.dp))
             }
         }
 
         // Account Section
         SectionCard(
-            title = "ACCOUNT",
-            items = listOf(
-                painterResource(R.drawable.outline_person_24) to "Personal details",
-                painterResource(R.drawable.baseline_star_24) to "Skills Tab",
-                painterResource(R.drawable.outline_person_book_24) to "Roles/Titles",
-                painterResource(R.drawable.baseline_work_24) to "Projects"
-            ),
-            onItemClick = { clickedItem ->
+            title = "ACCOUNT"
+        ) {
+            SettingsItem(
+                icon = painterResource(R.drawable.outline_person_24),
+                text = "Personal details",
+                onClick = { navController.navigate(Screen.BasicDetails.route) }
+            )
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
-                if (clickedItem == "Personal details") {
-                    navController.navigate(Screen.BasicDetails.route)
-                }
-                if (clickedItem == "Skills Tab") {
-                    navController.navigate(Screen.SkillsTab.route)
-                }
-                if (clickedItem == "Roles/Titles") {
-                    navController.navigate(Screen.RolesTitles.route)
-                }
-                if(clickedItem == "Projects"){
-                    navController.navigate(Screen.Projects.route)
-                }
-            }
-        )
+            SettingsItem(
+                icon = painterResource(R.drawable.baseline_star_24),
+                text = "Skills Tab",
+                onClick = { navController.navigate(Screen.SkillsTab.route) }
+            )
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+
+            SettingsItem(
+                icon = painterResource(R.drawable.outline_person_book_24),
+                text = "Roles/Titles",
+                onClick = { navController.navigate(Screen.RolesTitles.route) }
+            )
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+
+            SettingsItem(
+                icon = painterResource(R.drawable.baseline_work_24),
+                text = "Projects",
+                onClick = { navController.navigate(Screen.Projects.route) }
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // Settings Section
         SectionCard(
-            title = "SETTINGS",
-            items = listOf(
-                painterResource(R.drawable.outline_lock_24) to "Account privacy",
-                painterResource(R.drawable.outline_headphones_24) to "Help & support",
-                painterResource(R.drawable.outline_help_24) to "FAQs"
-            ),
-            onItemClick = { clickedItem ->
-
-                if (clickedItem == "Account privacy") {
-                    navController.navigate(Screen.AccountPrivacy.route)
-                }
-                if (clickedItem == "Help & support") {
-                    navController.navigate(Screen.ContactUs.route)
-                }
-                if (clickedItem == "FAQs") {
-                    navController.navigate(Screen.Faq.route)
-                }
-            }
-
-        )
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(2.dp)
+            title = "SETTINGS"
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp, horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.baseline_dark_mode_24), // Add a dark mode icon to your drawables
-                    contentDescription = "Dark Mode",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = "Dark Mode",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
-                )
-                Switch(
-                    checked = isDarkTheme,
-                    onCheckedChange = { themeViewModel.setTheme(it) }
-                )
-            }
+            // This is the new content block where you can place any items you want
+            SettingsItem(
+                icon = painterResource(R.drawable.outline_lock_24),
+                text = "Account privacy",
+                onClick = { navController.navigate(Screen.AccountPrivacy.route) }
+            )
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+
+            SettingsItem(
+                icon = painterResource(R.drawable.outline_headphones_24),
+                text = "Help & support",
+                onClick = { navController.navigate(Screen.ContactUs.route) }
+            )
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+
+            SettingsItem(
+                icon = painterResource(R.drawable.outline_help_24),
+                text = "FAQs",
+                onClick = { navController.navigate(Screen.Faq.route) }
+            )
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
+
+            // Use your new switch item here!
+            SettingsSwitchItem(
+                icon = painterResource(R.drawable.baseline_dark_mode_24),
+                text = "Dark Mode",
+                checked = isDarkTheme,
+                onCheckedChange = { themeViewModel.setTheme(it) }
+            )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -205,52 +205,48 @@ fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(
-                onClick = { onLogout() }, // Call the logout logic
-                modifier = Modifier
-                    .weight(0.45f)
-                    .height(48.dp),
+                onClick = { onLogout() },
+                modifier = Modifier.weight(1f).height(48.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = RedLogOut),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("Log Out", color = Color.White, fontSize = 16.sp)
+                // THEME: Text color will correctly be `onErrorContainer`
+                Text("Log Out", fontSize = 16.sp)
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Button(
-                onClick = { onLogout() }, // "Switch User" also uses the logout logic
-                modifier = Modifier
-                    .weight(0.45f)
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = GraySwitchUser),
+                onClick = { onLogout() },
+                modifier = Modifier.weight(1f).height(48.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("Switch User", color = Color.White, fontSize = 16.sp)
+                // THEME: Text color will correctly be `onSecondaryContainer`
+                Text("Switch User", fontSize = 16.sp)
             }
         }
     }
 }
 
 @Composable
-fun SectionCard(title: String, items: List<Pair<Painter, String>>, onItemClick: (String) -> Unit) {
+fun SectionCard(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit // Accept composable content directly
+) {
     Text(
         text = title,
-        style = MaterialTheme.typography.labelSmall.copy(color = MediumGrayText),
+        style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
         modifier = Modifier.padding(bottom = 8.dp)
     )
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column {
-            items.forEachIndexed { index, (icon, text) ->
-                SettingsItem(icon, text, onClick = { onItemClick(text) })
-                if (index != items.lastIndex) {
-                    HorizontalDivider(thickness = 1.dp, color = DividerColor)
-                }
-            }
+            content() // Render the content that was passed in
         }
     }
 }
@@ -264,15 +260,55 @@ fun SettingsItem(icon: Painter, text: String, onClick: () -> Unit) {
             .padding(vertical = 12.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = text, tint = DarkGrayText, modifier = Modifier.size(24.dp))
+        Icon(icon, contentDescription = text, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyMedium.copy(color = DarkGrayText),
+            // Add fontWeight here
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold
+            ),
             modifier = Modifier.weight(1f)
         )
-        Icon(painterResource(R.drawable.outline_chevron_right_24 ), contentDescription = null, tint =
-            MediumGrayText)
+        Icon(
+            painterResource(R.drawable.outline_chevron_right_24),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+@Composable
+fun SettingsSwitchItem(
+    icon: Painter,
+    text: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp, horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = icon,
+            contentDescription = text,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.weight(1f)
+        )
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
     }
 }
 

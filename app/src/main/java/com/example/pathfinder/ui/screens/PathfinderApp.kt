@@ -9,7 +9,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -143,7 +142,7 @@ fun PathfinderApp() {
             composable(Screen.AccountPrivacy.route) { AccountPrivacyScreen(navController) }
             composable(Screen.Faq.route) { FaqScreen(navController) }
             composable(Screen.ContactUs.route) { HelpSupportScreen(navController) }
-
+            composable(Screen.SubmissionWelcome.route) { SubmissionWelcomeScreen(navController)}
 
         }
     }
@@ -157,7 +156,8 @@ fun MainScreen(navController: NavController) {
 
     Scaffold(
         bottomBar = {
-            NavigationBar(containerColor = Color.White) {
+            // Remove the hardcoded containerColor
+            NavigationBar {
                 val navBackStackEntry by bottomNavNavController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
 

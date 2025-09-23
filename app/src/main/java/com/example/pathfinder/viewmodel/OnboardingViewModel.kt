@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.apollographql.apollo3.api.Optional
 import com.example.pathfinder.graphql.AddUserCareerGoalMutation
 import com.example.pathfinder.graphql.AddUserSkillMutation
+import com.example.pathfinder.graphql.DeleteProjectMutation
 import com.example.pathfinder.graphql.GetCareerPathsQuery
 import com.example.pathfinder.graphql.GetSkillsQuery
 import com.example.pathfinder.graphql.GetUserOnboardingDataQuery
@@ -71,6 +72,7 @@ interface IOnboardingViewModel {
 
     fun onProjectChange(index: Int, updatedProject: ProjectUI)
     fun onAddProject()
+    fun removeProject(projectId: String)
     fun submitFinalReview()
     // Add any other functions your UI needs to call
 }
@@ -124,7 +126,7 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
                             name = it.name,
                             description = it.description ?: "",
                             githubLink = it.githubLink ?: "",
-                            status = it.status.name 
+                            status = it.status.name
                         )
                     } ?: emptyList()
 
@@ -364,6 +366,36 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
             status = ""
         ))
         projects.value = currentProjects
+    }
+    override fun removeProject(projectId: String) {
+        val userId = tokenManager.getUserId()
+        if (userId == null) {
+            _uiState.value = UiState.Error("Cannot remove project, user not logged in")
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            try {
+                // This assumes your generated Apollo class is named DeleteProjectMutation
+                val response = apolloClient.mutation(
+                    DeleteProjectMutation(
+                        projectId = projectId
+                    )
+                ).execute()
+
+                if (response.hasErrors()) {
+                    val error = response.errors?.firstOrNull()?.message ?: "Failed to remove project"
+                    _uiState.value = UiState.Error(error)
+                } else {
+                    // Success! Refresh all user data to remove the project from the UI.
+                    Log.d("OnboardingViewModel", "Project removed successfully, refreshing data.")
+                    loadInitialData()
+                }
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.message ?: "A network error occurred")
+            }
+        }
     }
 
     override fun submitFinalReview() {

@@ -2,34 +2,16 @@ package com.example.pathfinder.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,13 +21,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
-import com.example.pathfinder.model.Recommendations
 import com.example.pathfinder.model.SkillUI
 import com.example.pathfinder.ui.screens.fake.FakeHomeViewModel
-import com.example.pathfinder.ui.theme.DarkGrayText
-import com.example.pathfinder.ui.theme.GrayPlaceholder
-import com.example.pathfinder.ui.theme.LightPurpleBackground
-import com.example.pathfinder.ui.theme.Teal500
 import com.example.pathfinder.viewmodel.HomeUiState
 import com.example.pathfinder.viewmodel.IHomeViewModel
 
@@ -64,14 +41,14 @@ fun HomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LightPurpleBackground)
+            // Use theme color for the background
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            // Search Bar
             OutlinedTextField(
                 value = "",
                 onValueChange = { /* Handle search input */ },
@@ -82,25 +59,24 @@ fun HomeScreen(
                     .padding(vertical = 8.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    disabledContainerColor = Color.White,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    disabledContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary, // More visible on focus
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
                 )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Trending Skills
             Text(
                 text = "Trending Skills",
-                style = MaterialTheme.typography.titleMedium.copy(color = DarkGrayText),
+                // Use theme color for text
+                style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            when(val state = uiState) {
+            when (val state = uiState) {
                 is HomeUiState.Loading -> {
-                    // Show placeholders or a loading indicator
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         SkillCard(skill = SkillUI("1", "Loading...", ""), modifier = Modifier.weight(1f).height(120.dp))
                         SkillCard(skill = SkillUI("2", "Loading...", ""), modifier = Modifier.weight(1f).height(120.dp))
@@ -114,7 +90,6 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // Take the first 2 skills as trending
                         state.trendingSkills.take(2).forEach { skill ->
                             SkillCard(
                                 skill = skill,
@@ -132,7 +107,7 @@ fun HomeScreen(
 
             Text(
                 text = "Personalized Recommendations",
-                style = MaterialTheme.typography.titleMedium.copy(color = DarkGrayText),
+                style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
@@ -141,7 +116,8 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .clickable { navController.navigate(Screen.BasicInfo.route) },
                 shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                // Use theme color for Card
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(2.dp)
             ) {
                 Row(
@@ -151,32 +127,32 @@ fun HomeScreen(
                     Icon(
                         painter = painterResource(R.drawable.baseline_description_24),
                         contentDescription = "Form Icon",
-                        tint = Teal500
+                        // Use primary theme color for tint
+                        tint = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
                         text = "Fill a personalized form to get recommendations",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = DarkGrayText,
+                        // Use theme color for text on a surface
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
                     Icon(
                         painter = painterResource(R.drawable.outline_chevron_right_24),
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-            // --- END of added card ---
-
             Spacer(modifier = Modifier.height(16.dp))
-
         }
-
         FloatingActionButton(
             onClick = { navController.navigate(Screen.Advisor.route) },
-            containerColor = Teal500,
-            contentColor = Color.White,
+            // Use theme colors for FAB
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
@@ -190,36 +166,22 @@ fun HomeScreen(
 fun SkillCard(skill: SkillUI, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     Box(
         modifier = modifier
-            .background(GrayPlaceholder, RoundedCornerShape(8.dp))
+            // Use a theme color for the card background
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = skill.name,
             style = MaterialTheme.typography.bodyLarge,
-            color = DarkGrayText,
+            // Use theme color for text on this surface
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(8.dp)
         )
     }
 }
 
-@Composable
-fun RecommendationCard(recommendation: Recommendations, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .background(GrayPlaceholder, RoundedCornerShape(8.dp)),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = recommendation.name,
-            style = MaterialTheme.typography.bodyLarge,
-            color = DarkGrayText,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(8.dp)
-        )
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

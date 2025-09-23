@@ -14,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,13 +25,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
 import com.example.pathfinder.ui.screens.fake.FakeOnboardingViewModel
-import com.example.pathfinder.ui.theme.DarkGrayText
-import com.example.pathfinder.ui.theme.LightGrayBackground
-import com.example.pathfinder.ui.theme.LightGrayField
-import com.example.pathfinder.ui.theme.MediumGrayText
-import com.example.pathfinder.ui.theme.TealButton
-import com.example.pathfinder.ui.theme.TealHeader
-import com.example.pathfinder.ui.theme.White
+import com.example.pathfinder.ui.theme.PathfinderAITheme // Import your theme
 import com.example.pathfinder.viewmodel.IOnboardingViewModel
 import com.example.pathfinder.viewmodel.UiState
 
@@ -59,7 +52,6 @@ fun BasicInfoScreen(
         when (val state = uiState) {
             is UiState.Success -> {
                 Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                // You can add logic to reset the state if needed
             }
             is UiState.Error -> {
                 Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
@@ -67,7 +59,6 @@ fun BasicInfoScreen(
             else -> {}
         }
     }
-
 
     val completedSteps = listOf(
         "Basic Info" to Screen.BasicInfo.route,
@@ -78,16 +69,16 @@ fun BasicInfoScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Basic Info", color = White, fontWeight = FontWeight.Bold) },
+                title = { Text("Basic Info", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "Show Steps", tint = White)
+                            Icon(Icons.Default.MoreVert, contentDescription = "Show Steps")
                         }
                         DropdownMenu(
                             expanded = menuExpanded,
@@ -105,12 +96,17 @@ fun BasicInfoScreen(
                         }
                     }
                 },
+                // THEME: Use theme colors for the app bar
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = TealHeader
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         },
-        containerColor = LightGrayBackground
+        // THEME: Use theme background color
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -123,7 +119,8 @@ fun BasicInfoScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(
                     modifier = Modifier
@@ -132,20 +129,23 @@ fun BasicInfoScreen(
                 ) {
                     Text(
                         text = "Welcome To Your Career Path",
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = DarkGrayText
-                        )
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        // THEME: Use onSurface color for text on cards
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Let's get to know you better....",
-                        style = MaterialTheme.typography.titleMedium.copy(color = DarkGrayText)
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "The following information will help us find perfect recommendations for you !!!",
-                        style = MaterialTheme.typography.bodySmall.copy(color = MediumGrayText)
+                        style = MaterialTheme.typography.bodySmall,
+                        // THEME: Use onSurfaceVariant for secondary text
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -159,7 +159,7 @@ fun BasicInfoScreen(
                     InfoTextField(
                         label = "Email",
                         value = email,
-                        onValueChange = { /* Email is read-only from login */ },
+                        onValueChange = { },
                         readOnly = true
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -170,7 +170,7 @@ fun BasicInfoScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     ExperienceDropdown(
-                        selectedValue = "$yearsExperience Year(s)",
+                        selectedValue = if (yearsExperience > 0) "$yearsExperience Year(s)" else "Select Experience",
                         onSelectionChanged = {
                             val years = it.filter { char -> char.isDigit() }.toIntOrNull() ?: 0
                             viewModel.onYearsExperienceChange(years)
@@ -188,14 +188,15 @@ fun BasicInfoScreen(
                     Button(
                         onClick = {
                             viewModel.saveBasicInfo()
-                            // Navigate to the next screen in the flow
                             navController.navigate(Screen.SkillsExpertise.route)
                         },
                         modifier = Modifier.fillMaxWidth().height(50.dp),
                         shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = TealButton)
+                        // THEME: Use primary color for main action buttons
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
-                        Text("Save & Continue", color = White, fontSize = 16.sp)
+                        // THEME: Text color is automatically handled by the button
+                        Text("Save & Continue", fontSize = 16.sp)
                     }
                 }
             }
@@ -204,16 +205,15 @@ fun BasicInfoScreen(
 
             // Skills card
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { /* Navigate to Skills & Expertise */ },
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Row(
                     modifier = Modifier
                         .padding(vertical = 16.dp, horizontal = 20.dp)
-                        .clickable{
+                        .clickable {
                             navController.navigate(Screen.SkillsExpertise.route) {
                                 launchSingleTop = true
                             }
@@ -223,19 +223,20 @@ fun BasicInfoScreen(
                     Icon(
                         Icons.Default.Star,
                         contentDescription = "Skills Icon",
-                        tint = MediumGrayText
+                        // THEME: Use theme color for icons
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
                         text = "Skills & Expertise",
                         modifier = Modifier.weight(1f),
-                        color = DarkGrayText,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.SemiBold
                     )
                     Icon(
                         painterResource(R.drawable.outline_chevron_right_24),
                         contentDescription = "Navigate",
-                        tint = MediumGrayText
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -254,9 +255,9 @@ fun InfoTextField(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
-            color = DarkGrayText,
+            // THEME: Use theme color for labels
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold,
-            // --- CHANGED to bodySmall for a smaller label ---
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -265,12 +266,13 @@ fun InfoTextField(
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
+            // THEME: Use theme colors for text fields
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = LightGrayField,
-                unfocusedContainerColor = LightGrayField,
-                disabledContainerColor = LightGrayField,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
             ),
             singleLine = true,
             readOnly = readOnly
@@ -290,9 +292,8 @@ fun ExperienceDropdown(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Years of Experience",
-            color = DarkGrayText,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold,
-            // --- CHANGED to bodySmall for a smaller label ---
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -302,19 +303,20 @@ fun ExperienceDropdown(
         ) {
             TextField(
                 readOnly = true,
-                value = selectedValue, // Use the value passed from the parent
+                value = selectedValue,
                 onValueChange = { },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                // THEME: Use theme colors for the dropdown text field
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = White,
-                    unfocusedContainerColor = White,
-                    disabledContainerColor = White,
-                    focusedIndicatorColor = Color.Gray,
-                    unfocusedIndicatorColor = Color.LightGray
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
                 ),
                 modifier = Modifier
                     .menuAnchor()
-                    .fillMaxWidth() // Added menuAnchor
+                    .fillMaxWidth()
             )
             ExposedDropdownMenu(
                 expanded = expanded,
@@ -324,7 +326,7 @@ fun ExperienceDropdown(
                     DropdownMenuItem(
                         text = { Text(text = selectionOption) },
                         onClick = {
-                            onSelectionChanged(selectionOption) // Report the change up to the parent
+                            onSelectionChanged(selectionOption)
                             expanded = false
                         }
                     )
@@ -338,8 +340,7 @@ fun ExperienceDropdown(
 @Composable
 fun PreviewBasicInfoScreen() {
     val fakeNavController: NavController = rememberNavController()
-    MaterialTheme {
+    PathfinderAITheme {
         BasicInfoScreen(fakeNavController, viewModel = FakeOnboardingViewModel())
     }
 }
-

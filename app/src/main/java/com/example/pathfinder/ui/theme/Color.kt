@@ -39,10 +39,14 @@ val DarkBlueText = Color(0xFF004D40)
 val ScreenBackgroundColor = Color(0xFFF4F4FA)
 val DefaultIconBackgroundColor = Color(0xFFE3F2FD)
 
-// --- NEW: Dark Theme Colors ---
 val DarkBackground = Color(0xFF121212)
 val DarkSurface = Color(0xFF1E1E1E) // For cards
 val DarkPrimary = Color(0xFF00BFA5) // A brighter teal for accents
 val DarkOnSurface = Color(0xFFE0E0E0) // Light gray for text
 val DarkOnSurfaceVariant = Color(0xFFB0B0B0) // Medium gray for secondary text
 val DarkDivider = Color(0xFF2A2A2A)
+
+val VeryLightGray = Color(0xFFF5F5F5) // For light theme text fields
+val LightRed = Color(0xFFFAD2D2)      // For light theme error button background
+val DarkRed = Color(0xFFB71C1C)       // For light theme error text & dark theme error background
+val DarkerGray = Color(0xFF2C2C2C)    // For dark theme text fields and buttons

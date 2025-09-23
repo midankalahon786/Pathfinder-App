@@ -102,5 +102,6 @@ class FakeOnboardingViewModel : IOnboardingViewModel {
 
     override fun onProjectChange(index: Int, updatedProject: ProjectUI) {}
     override fun onAddProject() {}
+    override fun removeProject(projectId: String) {}
     override fun submitFinalReview() {}
 }

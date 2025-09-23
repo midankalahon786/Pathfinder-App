@@ -14,7 +14,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -31,21 +30,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.pathfinder.ui.theme.DarkGrayText
-import com.example.pathfinder.ui.theme.LightPurpleBackground
-import com.example.pathfinder.ui.theme.MediumGrayText
+import com.example.pathfinder.ui.theme.PathfinderAITheme // Import your theme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountPrivacyScreen(navController: NavController) {
     Scaffold(
-        containerColor = LightPurpleBackground,
+        // THEME: Use theme background color
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Account Privacy", fontWeight = FontWeight.Bold) },
@@ -54,8 +51,9 @@ fun AccountPrivacyScreen(navController: NavController) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
+                // THEME: Use theme background color for a seamless look
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         }
@@ -73,7 +71,8 @@ fun AccountPrivacyScreen(navController: NavController) {
                 text = "Private Account",
                 description = "When your account is private, only people you approve can see your full profile."
             )
-            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+            // THEME: Use a theme-aware color for the divider
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             PrivacyOptionRow(
                 text = "Show activity status",
                 description = "Allow others to see when you were last active on the platform."
@@ -94,7 +93,8 @@ private fun SectionTitle(title: String) {
     Text(
         text = title,
         style = MaterialTheme.typography.labelSmall,
-        color = MediumGrayText,
+        // THEME: Use onSurfaceVariant for section headers
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(vertical = 8.dp)
     )
 }
@@ -110,8 +110,10 @@ private fun PrivacyOptionRow(text: String, description: String) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(text, style = MaterialTheme.typography.bodyLarge, color = DarkGrayText)
-            Text(description, style = MaterialTheme.typography.bodySmall, color = MediumGrayText)
+            // THEME: Use onSurface for primary text
+            Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+            // THEME: Use onSurfaceVariant for descriptive text
+            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Spacer(modifier = Modifier.width(16.dp))
         Switch(
@@ -124,7 +126,8 @@ private fun PrivacyOptionRow(text: String, description: String) {
 @Preview(showBackground = true)
 @Composable
 fun AccountPrivacyScreenPreview() {
-    MaterialTheme {
+    // It's a good practice to wrap previews in your app's theme
+    PathfinderAITheme {
         AccountPrivacyScreen(navController = rememberNavController())
     }
 }

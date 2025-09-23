@@ -8,14 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,32 +16,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -72,7 +44,7 @@ fun BasicDetailsScreen(
     navController: NavController,
     viewModel: IProfileViewModel
 ) {
-    // --- Collect state from the ViewModel ---
+    // State collection remains the same
     val name by viewModel.name.collectAsState()
     val phone by viewModel.phone.collectAsState()
     val email by viewModel.email.collectAsState()
@@ -81,7 +53,6 @@ fun BasicDetailsScreen(
     val profileImageUrl by viewModel.profileImageUrl.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 
-    // This holds the URI of a newly selected image from the gallery
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
 
@@ -89,8 +60,6 @@ fun BasicDetailsScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         imageUri = uri
-        // In a real app, you would upload this URI to a server, get a URL,
-        // and then call something like viewModel.onProfileImageUrlChange(newUrl)
     }
 
     val calendar = Calendar.getInstance()
@@ -131,25 +100,33 @@ fun BasicDetailsScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                // THEME: Remove hardcoded color to use MaterialTheme defaults
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
-        containerColor = Color.White
+        // THEME: Use theme background color
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 24.dp)
+                // SIZE: Reduced horizontal padding
+                .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            // SIZE: Reduced spacer
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Profile Image Box
             Box(
-                modifier = Modifier.size(120.dp),
-                contentAlignment = Alignment.TopEnd
+                // SIZE: Reduced image size
+                modifier = Modifier.size(100.dp),
+                contentAlignment = Alignment.BottomEnd // A common pattern for edit icons
             ) {
                 Image(
                     painter = rememberAsyncImagePainter(
@@ -159,27 +136,33 @@ fun BasicDetailsScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape)
-                        .background(Color.LightGray),
+                        // THEME: Use theme color for placeholder background
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentScale = ContentScale.Crop
                 )
                 Box(
                     modifier = Modifier
+                        // SIZE: Reduced icon box size
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF16DBC4))
+                        // THEME: Use primary theme color
+                        .background(MaterialTheme.colorScheme.primary)
                         .clickable { imagePickerLauncher.launch("image/*") },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         Icons.Filled.Edit,
                         contentDescription = "Edit Picture",
-                        tint = Color.White,
+                        // THEME: Use onPrimary for content on primary color
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        // SIZE: Reduced icon size
                         modifier = Modifier.size(18.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            // SIZE: Reduced spacer
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Input Fields
             DetailTextField(
@@ -187,27 +170,28 @@ fun BasicDetailsScreen(
                 value = name,
                 onValueChange = { viewModel.onNameChange(it) }
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            // SIZE: Reduced spacer
+            Spacer(modifier = Modifier.height(16.dp))
 
             GenderDropdown(
                 selectedGender = gender,
                 onGenderSelected = { viewModel.onGenderChange(it) }
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             DetailTextField(
                 label = "Phone",
                 value = phone,
                 onValueChange = { viewModel.onPhoneChange(it) }
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             DetailTextField(
                 label = "Email",
                 value = email,
                 onValueChange = { /* Email is read-only */ },
                 readOnly = true
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             DetailTextField(
                 label = "Birthday",
                 value = birthday,
@@ -221,32 +205,55 @@ fun BasicDetailsScreen(
 
             // Buttons
             Button(
-                onClick = { /* TODO: Implement Change Password navigation/logic */ },
+                onClick = { /* TODO: Implement Change Password */ },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
+                    // SIZE: Reduced button height
+                    .height(44.dp),
                 shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8D94A0))
+                // THEME: Use secondary container for less important actions
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
             ) {
-                Text("Change Password", color = Color.White, fontSize = 16.sp)
+                Text(
+                    "Change Password",
+                    // THEME: Use corresponding on-color
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    // SIZE: Reduced font size
+                    fontSize = 14.sp
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // SIZE: Reduced spacer
+            Spacer(modifier = Modifier.height(12.dp))
 
             Button(
                 onClick = { viewModel.saveChanges() },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp),
                 shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1DE9B6)),
+                // THEME: Use primary color for the main action
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 enabled = uiState != ProfileUiState.Loading
             ) {
                 if (uiState == ProfileUiState.Loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
+                    CircularProgressIndicator(
+                        // SIZE: Reduced indicator size
+                        modifier = Modifier.size(20.dp),
+                        // THEME: Use on-color for contrast
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
                 } else {
-                    Text("Save changes", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Save changes",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(32.dp))
+            // SIZE: Reduced bottom spacer
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -263,9 +270,11 @@ fun DetailTextField(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
-            color = Color.DarkGray,
+            // THEME: Use theme color for labels
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 8.dp)
+            // SIZE: Reduced bottom padding
+            modifier = Modifier.padding(bottom = 6.dp)
         )
         Box(modifier = Modifier.then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)) {
             TextField(
@@ -274,12 +283,13 @@ fun DetailTextField(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { if (placeholder.isNotEmpty()) Text(placeholder) },
                 shape = RoundedCornerShape(8.dp),
+                // THEME: Use theme-aware colors for text fields
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF5F5F5),
-                    unfocusedContainerColor = Color(0xFFF5F5F5),
-                    disabledContainerColor = Color(0xFFF5F5F5),
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
                 ),
                 singleLine = true,
                 readOnly = readOnly,
@@ -304,9 +314,9 @@ fun GenderDropdown(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Gender",
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 6.dp)
         )
         ExposedDropdownMenuBox(
             expanded = expanded,
@@ -319,14 +329,16 @@ fun GenderDropdown(
                 modifier = Modifier.menuAnchor().fillMaxWidth(),
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 shape = RoundedCornerShape(8.dp),
+                // THEME: Use theme-aware colors for the dropdown text field
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF5F5F5),
-                    unfocusedContainerColor = Color(0xFFF5F5F5),
-                    disabledContainerColor = Color(0xFFF5F5F5),
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                    unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
                 ),
             )
+            // THEME: The dropdown menu itself is automatically themed by Material 3
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
@@ -356,5 +368,8 @@ fun GenderDropdown(
 @Composable
 fun BasicDetailsScreenPreview() {
     val fakeNavController = rememberNavController()
-    BasicDetailsScreen(fakeNavController, viewModel = FakeProfileViewModel())
+    // Wrap preview in your theme to see changes
+    MaterialTheme {
+        BasicDetailsScreen(fakeNavController, viewModel = FakeProfileViewModel())
+    }
 }

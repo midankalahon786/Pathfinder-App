@@ -33,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,9 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
-import com.example.pathfinder.ui.theme.DarkGrayText
-import com.example.pathfinder.ui.theme.LightPurpleBackground
-import com.example.pathfinder.ui.theme.MediumGrayText
+import com.example.pathfinder.ui.theme.PathfinderAITheme // Import your theme
 
 data class FaqItem(val question: String, val answer: String)
 
@@ -60,7 +57,8 @@ fun FaqScreen(navController: NavController) {
     var expandedIndex by remember { mutableIntStateOf(-1) }
 
     Scaffold(
-        containerColor = LightPurpleBackground,
+        // THEME: Use theme background color
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("FAQs", fontWeight = FontWeight.Bold) },
@@ -69,8 +67,9 @@ fun FaqScreen(navController: NavController) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
+                // THEME: Use theme background color for a seamless look
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         }
@@ -100,7 +99,8 @@ private fun FaqCard(faqItem: FaqItem, isExpanded: Boolean, onClick: () -> Unit) 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        // THEME: Use theme surface color for cards
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(
@@ -113,12 +113,15 @@ private fun FaqCard(faqItem: FaqItem, isExpanded: Boolean, onClick: () -> Unit) 
                     text = faqItem.question,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f),
-                    color = DarkGrayText
+                    // THEME: Use onSurface for primary text on cards
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Icon(
                     painter = if (isExpanded) painterResource(R.drawable.baseline_expand_less_24)
                     else painterResource(R.drawable.baseline_expand_more_24),
-                    contentDescription = "Expand or collapse"
+                    contentDescription = "Expand or collapse",
+                    // THEME: Use onSurfaceVariant for icons
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             AnimatedVisibility(visible = isExpanded) {
@@ -127,7 +130,8 @@ private fun FaqCard(faqItem: FaqItem, isExpanded: Boolean, onClick: () -> Unit) 
                     Text(
                         text = faqItem.answer,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MediumGrayText
+                        // THEME: Use onSurfaceVariant for secondary text
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -138,7 +142,8 @@ private fun FaqCard(faqItem: FaqItem, isExpanded: Boolean, onClick: () -> Unit) 
 @Preview(showBackground = true)
 @Composable
 fun FaqScreenPreview() {
-    MaterialTheme {
+    // It's a good practice to wrap previews in your app's theme
+    PathfinderAITheme {
         FaqScreen(navController = rememberNavController())
     }
 }

@@ -1,5 +1,6 @@
 package com.example.pathfinder.ui.screens.fake
 
+import com.example.pathfinder.graphql.GetSkillsQuery
 import com.example.pathfinder.model.UserSkillUI
 import com.example.pathfinder.viewmodel.ISkillsViewModel
 import com.example.pathfinder.viewmodel.SkillsUiState
@@ -23,6 +24,16 @@ class FakeSkillsViewModel : ISkillsViewModel {
             )
         )
 
-    // The function does nothing in a static preview
+    // --- ADDED: Implementation for the new members ---
+    override val allSkills: StateFlow<List<GetSkillsQuery.GetSkill>> =
+        MutableStateFlow(emptyList()) // Provide an empty list for the preview
+
     override fun fetchUserSkills() {}
+
+    override fun fetchAllSkills() {} // Does nothing in a static preview
+
+    override fun addUserSkill(skillId: String, level: String) {} // Does nothing in a static preview
+    // --- END OF ADDITIONS ---
+
+    override fun removeUserSkill(userSkillId: String) {}
 }

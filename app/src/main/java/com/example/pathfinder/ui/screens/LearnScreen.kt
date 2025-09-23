@@ -11,7 +11,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -19,7 +18,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pathfinder.model.LearningResource
-import com.example.pathfinder.ui.theme.*
 
 // This is the main entry point you would call from your NavHost
 @Composable
@@ -44,7 +42,6 @@ fun LearnScreen() {
         }
     }
 
-    // Now, LearnScreen just calls the content composable
     LearnScreenContent(learningResources = learningResources)
 }
 
@@ -66,7 +63,8 @@ fun LearnScreenContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(LightPurpleBackground)
+            // 1. Use theme background color
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -80,12 +78,13 @@ fun LearnScreenContent(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             shape = RoundedCornerShape(8.dp),
+            // 2. Remove hardcoded colors to use Material 3 defaults which are theme-aware
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                disabledContainerColor = Color.White,
-                focusedIndicatorColor = TealHeader,
-                unfocusedIndicatorColor = DividerColor
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                disabledContainerColor = MaterialTheme.colorScheme.surface,
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
             )
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -104,15 +103,16 @@ fun LearnScreenContent(
                         selectedCategory = if (category == "All") null else category
                     },
                     label = { Text(category) },
+                    // 3. Use semantic theme colors for FilterChip states
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = TealHeader.copy(alpha = 0.2f),
-                        selectedLabelColor = DarkBlueText,
-                        containerColor = Color.White,
-                        labelColor = MediumGrayText
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
                     ),
                     border = FilterChipDefaults.filterChipBorder(
-                        selectedBorderColor = TealHeader,
-                        borderColor = DividerColor,
+                        borderColor = MaterialTheme.colorScheme.outline,
+                        selectedBorderColor = MaterialTheme.colorScheme.primary,
                         enabled = true,
                         selected = false
                     )
@@ -137,7 +137,8 @@ fun LearnScreenContent(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = "No learning resources found matching your criteria.",
-                    color = MediumGrayText,
+                    // 4. Use theme color for placeholder text
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
 
@@ -146,10 +147,7 @@ fun LearnScreenContent(
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(filteredResources) { resource ->
                     LearningResourceCard(resource = resource) {
-                        // In a real app, this would open the URL, e.g., using an Intent
                         println("View resource clicked for ${resource.title}. URL: ${resource.url}")
-                        // Example: val intent = Intent(Intent.ACTION_VIEW, Uri.parse(resource.url))
-                        // context.startActivity(intent)
                     }
                 }
             }
@@ -162,14 +160,16 @@ fun LearningResourceCard(resource: LearningResource, onViewClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        // 5. Use theme surface color for Card background
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = resource.title,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = DarkBlueText,
+                // 6. Use theme color for primary text
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -177,12 +177,13 @@ fun LearningResourceCard(resource: LearningResource, onViewClick: () -> Unit) {
             Text(
                 text = resource.provider,
                 style = MaterialTheme.typography.titleMedium,
-                color = DarkGrayText
+                // 7. Use theme color for secondary text
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "${resource.type} • ${resource.duration}",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MediumGrayText
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(
@@ -193,15 +194,18 @@ fun LearningResourceCard(resource: LearningResource, onViewClick: () -> Unit) {
                 Text(
                     text = "Category: ${resource.category}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Green,
+                    // 8. Use a semantic accent color like 'tertiary'
+                    color = MaterialTheme.colorScheme.tertiary,
                     fontWeight = FontWeight.SemiBold
                 )
                 Button(
                     onClick = onViewClick,
                     shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = TealHeader)
+                    // 9. Use theme's primary color for the button
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("View", color = Color.White, fontSize = 14.sp)
+                    // Text color will automatically be `onPrimary`, so no need to specify it
+                    Text("View", fontSize = 14.sp)
                 }
             }
         }

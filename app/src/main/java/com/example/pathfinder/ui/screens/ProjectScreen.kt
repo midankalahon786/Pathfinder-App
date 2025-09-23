@@ -17,19 +17,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.model.ProjectUI
 import com.example.pathfinder.ui.screens.fake.FakeProjectsViewModel
-import com.example.pathfinder.ui.theme.DefaultIconBackgroundColor
-import com.example.pathfinder.ui.theme.ScreenBackgroundColor
-import com.example.pathfinder.ui.theme.TealHeader
+import com.example.pathfinder.ui.theme.PathfinderAITheme // Import your app's theme
 import com.example.pathfinder.viewmodel.IProjectsViewModel
 import com.example.pathfinder.viewmodel.ProjectsUiState
 
@@ -40,10 +36,8 @@ fun ProjectsScreen(
     navController: NavController,
     viewModel: IProjectsViewModel
 ) {
-    // Collect state from the ViewModel
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Fetch data when the screen is first displayed
     LaunchedEffect(Unit) {
         viewModel.fetchUserProjects()
     }
@@ -57,31 +51,37 @@ fun ProjectsScreen(
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = ScreenBackgroundColor)
+                // THEME: Use theme surface color for app bar
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { /* TODO: Navigate to Add Project Screen */ },
-                containerColor = TealHeader,
-                contentColor = Color.White,
-                shape = CircleShape,
-                modifier = Modifier.size(64.dp)
+                // THEME: Use theme primary color for FAB
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = CircleShape
+                // SIZE: Removed explicit size to use Material's default (56.dp)
             ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Project", modifier = Modifier.size(32.dp))
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Project",
+                    // SIZE: Reduced icon size to Material's default (24.dp)
+                )
             }
         },
-        containerColor = ScreenBackgroundColor
+        // THEME: Use theme background color
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
-            FilterTabs()
-            Spacer(modifier = Modifier.height(24.dp))
+            // FilterTabs() // Assuming this will be implemented later
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Handle the different UI states
             when (val state = uiState) {
                 is ProjectsUiState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -117,12 +117,12 @@ fun ProjectsScreen(
 
 @Composable
 fun FilterTabs() {
-    // ... This component is unchanged
+    // A placeholder for filter tabs
 }
 
 @Composable
-fun ProjectList(projects: List<ProjectUI>) { // Update to use ProjectUI
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+fun ProjectList(projects: List<ProjectUI>) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         items(projects) { project ->
             ProjectItem(project = project)
         }
@@ -130,12 +130,14 @@ fun ProjectList(projects: List<ProjectUI>) { // Update to use ProjectUI
 }
 
 @Composable
-fun ProjectItem(project: ProjectUI) { // Update to use ProjectUI
+fun ProjectItem(project: ProjectUI) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        // SIZE: Reduced corner radius for a more standard look
+        shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        // THEME: Use theme surface color for Card
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -143,33 +145,41 @@ fun ProjectItem(project: ProjectUI) { // Update to use ProjectUI
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Box(
-                modifier = Modifier.size(48.dp).clip(CircleShape).background(DefaultIconBackgroundColor),
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    // THEME: Use primaryContainer for icon background
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Code,
                     contentDescription = project.name,
-                    tint = MaterialTheme.colorScheme.primary
+                    // THEME: Use onPrimaryContainer for icon tint
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = project.name,
+                    // SIZE: Use theme typography for consistency
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = project.description,
-                    fontSize = 14.sp,
-                    color = Color.Gray
+                    style = MaterialTheme.typography.bodyMedium,
+                    // THEME: Use onSurfaceVariant for secondary text
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "Go to project",
-                tint = Color.Gray
+                // THEME: Use onSurfaceVariant for decorative icons
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -178,8 +188,11 @@ fun ProjectItem(project: ProjectUI) { // Update to use ProjectUI
 @Preview(showBackground = true)
 @Composable
 fun ProjectsScreenPreview() {
-    ProjectsScreen(
-        navController = rememberNavController(),
-        viewModel = FakeProjectsViewModel() // Use the fake ViewModel
-    )
+    // THEME: Wrap your preview in your app's theme to see the changes
+    PathfinderAITheme {
+        ProjectsScreen(
+            navController = rememberNavController(),
+            viewModel = FakeProjectsViewModel()
+        )
+    }
 }
