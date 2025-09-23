@@ -24,7 +24,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.pathfinder.R
-import com.example.pathfinder.model.Skill
 import com.example.pathfinder.model.UserSkillUI
 import com.example.pathfinder.ui.screens.fake.FakeOnboardingViewModel
 import com.example.pathfinder.ui.theme.PathfinderAITheme // Import your theme
